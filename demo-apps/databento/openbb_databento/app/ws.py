@@ -28,6 +28,7 @@ class ConnectionManager:
 
     This class holds the API router for the WebSocket endpoints.
     """
+
     def __init__(
         self,
         cme_database: CmeDatabase,
@@ -74,14 +75,18 @@ class ConnectionManager:
         self.message_cache_lock = threading.Lock()
 
         self.live_grid_assets = self.database.live_grid_assets
-        self.names_map = self.live_grid_assets.set_index("continuous_symbol")["name"].to_dict()
-        self.instrument_id_map = (
-            self.live_grid_assets.set_index("instrument_id")["continuous_symbol"].to_dict()
-        )
-        self.asset_map = self.live_grid_assets.set_index("continuous_symbol")["asset"].to_dict()
-        self.asset_class_map = (
-            self.live_grid_assets.set_index("continuous_symbol")["asset_class"].to_dict()
-        )
+        self.names_map = self.live_grid_assets.set_index("continuous_symbol")[
+            "name"
+        ].to_dict()
+        self.instrument_id_map = self.live_grid_assets.set_index("instrument_id")[
+            "continuous_symbol"
+        ].to_dict()
+        self.asset_map = self.live_grid_assets.set_index("continuous_symbol")[
+            "asset"
+        ].to_dict()
+        self.asset_class_map = self.live_grid_assets.set_index("continuous_symbol")[
+            "asset_class"
+        ].to_dict()
 
         # Register endpoints with the app
         self._setup_app_routes()
@@ -118,7 +123,9 @@ class ConnectionManager:
                 await self.disconnect(websocket)
 
         @self.router.get("/symbology")
-        async def get_symbology(asset_type: Optional[str] = None) -> list:  # pylint: disable=R0911
+        async def get_symbology(
+            asset_type: Optional[str] = None,
+        ) -> list:  # pylint: disable=R0911
             """Get the symbology map from Databento client"""
             try:
                 if asset_type == "equity":
@@ -126,10 +133,17 @@ class ConnectionManager:
                         "asset_class == 'Equity'"
                     ).continuous_symbol.tolist()
                     return [
-                        {"label": v, "value": k, "extraInfo": {"description": self.asset_map[k]}}
+                        {
+                            "label": v,
+                            "value": k,
+                            "extraInfo": {"description": self.asset_map[k]},
+                        }
                         for k, v in self.live_grid_assets.query(
                             "continuous_symbol.isin(@equity_symbols)"
-                        ).set_index("continuous_symbol")["name"].to_dict().items()
+                        )
+                        .set_index("continuous_symbol")["name"]
+                        .to_dict()
+                        .items()
                     ]
 
                 if asset_type == "fx":
@@ -137,10 +151,17 @@ class ConnectionManager:
                         "asset_class == 'Currency'"
                     ).continuous_symbol.tolist()
                     return [
-                        {"label": v, "value": k, "extraInfo": {"description": self.asset_map[k]}}
+                        {
+                            "label": v,
+                            "value": k,
+                            "extraInfo": {"description": self.asset_map[k]},
+                        }
                         for k, v in self.live_grid_assets.query(
                             "continuous_symbol.isin(@fx_symbols)"
-                        ).set_index("continuous_symbol")["name"].to_dict().items()
+                        )
+                        .set_index("continuous_symbol")["name"]
+                        .to_dict()
+                        .items()
                     ]
 
                 if asset_type == "interest_rates":
@@ -148,10 +169,17 @@ class ConnectionManager:
                         "asset_class == 'Interest Rate'"
                     ).continuous_symbol.tolist()
                     return [
-                        {"label": v, "value": k, "extraInfo": {"description": self.asset_map[k]}}
+                        {
+                            "label": v,
+                            "value": k,
+                            "extraInfo": {"description": self.asset_map[k]},
+                        }
                         for k, v in self.live_grid_assets.query(
                             "continuous_symbol.isin(@ir_symbols)"
-                        ).set_index("continuous_symbol")["name"].to_dict().items()
+                        )
+                        .set_index("continuous_symbol")["name"]
+                        .to_dict()
+                        .items()
                     ]
 
                 if asset_type == "metals":
@@ -159,10 +187,17 @@ class ConnectionManager:
                         "asset_class == 'Metals' or asset == 'HR'"
                     ).continuous_symbol.tolist()
                     return [
-                        {"label": v, "value": k, "extraInfo": {"description": self.asset_map[k]}}
+                        {
+                            "label": v,
+                            "value": k,
+                            "extraInfo": {"description": self.asset_map[k]},
+                        }
                         for k, v in self.live_grid_assets.query(
                             "continuous_symbol.isin(@metals_symbols)"
-                        ).set_index("continuous_symbol")["name"].to_dict().items()
+                        )
+                        .set_index("continuous_symbol")["name"]
+                        .to_dict()
+                        .items()
                     ]
 
                 if asset_type == "agriculture":
@@ -170,20 +205,34 @@ class ConnectionManager:
                         "asset_class == 'Commodity/Agriculture' and asset != 'HR'"
                     ).continuous_symbol.tolist()
                     return [
-                        {"label": v, "value": k, "extraInfo": {"description": self.asset_map[k]}}
+                        {
+                            "label": v,
+                            "value": k,
+                            "extraInfo": {"description": self.asset_map[k]},
+                        }
                         for k, v in self.live_grid_assets.query(
                             "continuous_symbol.isin(@ag_symbols)"
-                        ).set_index("continuous_symbol")["name"].to_dict().items()
+                        )
+                        .set_index("continuous_symbol")["name"]
+                        .to_dict()
+                        .items()
                     ]
                 if asset_type == "energy":
                     energy_symbols = self.live_grid_assets.query(
                         "asset_class == 'Energy'"
                     ).continuous_symbol.tolist()
                     return [
-                        {"label": v, "value": k, "extraInfo": {"description": self.asset_map[k]}}
+                        {
+                            "label": v,
+                            "value": k,
+                            "extraInfo": {"description": self.asset_map[k]},
+                        }
                         for k, v in self.live_grid_assets.query(
                             "continuous_symbol.isin(@energy_symbols)"
-                        ).set_index("continuous_symbol")["name"].to_dict().items()
+                        )
+                        .set_index("continuous_symbol")["name"]
+                        .to_dict()
+                        .items()
                     ]
                 return [
                     {
@@ -194,13 +243,17 @@ class ConnectionManager:
                             "rightOfDescription": self.asset_map[k],
                         },
                     }
-                    for k, v in self.live_grid_assets.set_index(
-                        "continuous_symbol"
-                    )["name"].to_dict().items()
+                    for k, v in self.live_grid_assets.set_index("continuous_symbol")[
+                        "name"
+                    ]
+                    .to_dict()
+                    .items()
                 ]
 
             except Exception as e:  # pylint: disable=broad-except
-                self.database.logger.error("Error getting symbology map: %s", e, exc_info=True)
+                self.database.logger.error(
+                    "Error getting symbology map: %s", e, exc_info=True
+                )
                 return [{"label": f"Error: {e}", "value": ""}]
 
         @self.router.get("/control/subscribe")
@@ -272,9 +325,8 @@ class ConnectionManager:
                 return []
 
             result: list = []
-            current_time = (
-                datetime.now(tz=timezone("America/Chicago"))
-                .strftime("%Y-%m-%d %H:%M:%S")
+            current_time = datetime.now(tz=timezone("America/Chicago")).strftime(
+                "%Y-%m-%d %H:%M:%S"
             )
 
             with self.message_cache_lock:
@@ -365,7 +417,9 @@ class ConnectionManager:
                     # Send a heartbeat to keep the connection alive
                     yield {"type": "heartbeat", "timestamp": datetime.now().isoformat()}
                 except Exception as e:  # pylint: disable=broad-except
-                    self.database.logger.error("Error in master stream: %s", e, exc_info=True)
+                    self.database.logger.error(
+                        "Error in master stream: %s", e, exc_info=True
+                    )
                     yield {"error": str(e)}
                     await asyncio.sleep(1)
         finally:
@@ -417,8 +471,6 @@ class ConnectionManager:
     def error_handler(self, exception: Exception) -> None:
         """Error handler for Databento client"""
         self.database.logger.error("Databento error: %s", exception, exc_info=True)
-        # Put a reconnection message in the queue
-        self.message_queue.put({"_reconnect": True})
 
     def process_messages_thread(self):
         """Thread function to process messages from the queue"""
@@ -434,7 +486,7 @@ class ConnectionManager:
 
                 # Check if this is a reconnection signal
                 if isinstance(message, dict) and message.get("_reconnect"):
-                    asyncio.run_coroutine_threadsafe(self.reconnect(), self.loop) # type: ignore
+                    asyncio.run_coroutine_threadsafe(self.reconnect(), self.loop)  # type: ignore
                     self.message_queue.task_done()
                     continue
 
@@ -458,7 +510,9 @@ class ConnectionManager:
                     # Mark the message as processed
                     self.message_queue.task_done()
             except Exception as e:  # pylint: disable=broad-except
-                self.database.logger.error("Error in message processor thread: %s", e, exc_info=True)
+                self.database.logger.error(
+                    "Error in message processor thread: %s", e, exc_info=True
+                )
 
     async def broadcast_to_subscribers(self, subscribers: set[WebSocket], msg: dict):
         """Broadcast a message to all specified subscribers"""
@@ -466,7 +520,9 @@ class ConnectionManager:
             try:
                 await client.send_json(msg)
             except Exception as e:  # pylint: disable=broad-except
-                self.database.logger.error("Error sending to client: %s", e, exc_info=True)
+                self.database.logger.error(
+                    "Error sending to client: %s", e, exc_info=True
+                )
 
     async def start_master_connection(self):
         """Start the Databento Live client connection"""
@@ -482,7 +538,8 @@ class ConnectionManager:
             try:
                 self.database.logger.info(
                     "Starting Databento client (attempt %d/%d)...",
-                    retries + 1, self.max_retries + 1
+                    retries + 1,
+                    self.max_retries + 1,
                 )
 
                 # Initialize the Databento client
@@ -527,14 +584,13 @@ class ConnectionManager:
                 if retries <= self.max_retries:
                     self.database.logger.warning(
                         "Connection error: %s, retrying in %s seconds...",
-                        e, str(self.retry_delay)
+                        e,
+                        str(self.retry_delay),
                     )
                     await asyncio.sleep(self.retry_delay)
                 else:
                     self.database.logger.error(
-                        "Failed to establish Databento connection: %s",
-                        e,
-                        exc_info=True
+                        "Failed to establish Databento connection: %s", e, exc_info=True
                     )
                     self.is_running = False
                     break
@@ -644,13 +700,12 @@ class ConnectionManager:
 
 
 def create_databento_manager(
-    api_key: Optional[str] = None,
-    db_file: Optional[str] = None
+    api_key: Optional[str] = None, db_file: Optional[str] = None
 ) -> ConnectionManager:
     """Create a ConnectionManager configured for Databento Live API"""
     cme_database = CmeDatabase(api_key=api_key, db_file=db_file)
     return ConnectionManager(
-        cme_database = cme_database,
+        cme_database=cme_database,
         connection_timeout=30.0,
         retry_delay=5.0,
         max_retries=3,

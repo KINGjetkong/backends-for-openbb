@@ -307,7 +307,7 @@ class CmeDatabase:
         roll_rule : Optional[str]
             The roll rule to apply when setting the live grid assets.
             Set as one of "c", "n", or "v" - calendar, open interest, or volume.
-            If None, defaults to "v".
+            If None, defaults to "c".
 
         Returns
         -------
@@ -321,7 +321,7 @@ class CmeDatabase:
             )
             return False
 
-        roll_rule = roll_rule or "v"
+        roll_rule = roll_rule or "c"
 
         try:
             symbols = symbols or live_grid_assets

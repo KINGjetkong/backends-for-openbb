@@ -170,14 +170,14 @@
             "state": {
               "params": {
                 "symbol": [
-                  "ES.v.0",
-                  "ES.v.1",
-                  "MNQ.v.0",
-                  "MNQ.v.1",
-                  "RTY.v.0",
-                  "RTY.v.1",
-                  "YM.v.0",
-                  "YM.v.1"
+                  "ES.c.0",
+                  "ES.c.1",
+                  "MNQ.c.0",
+                  "MNQ.c.1",
+                  "RTY.c.0",
+                  "RTY.c.1",
+                  "YM.c.0",
+                  "YM.c.1"
                 ]
               },
               "columnState": {
@@ -212,21 +212,21 @@
             "state": {
               "params": {
                 "symbol": [
-                  "6N.v.0",
-                  "6E.v.0",
-                  "6S.v.0",
-                  "6L.v.0",
-                  "6B.v.0",
-                  "6J.v.0",
-                  "6C.v.0",
-                  "6M.v.0",
-                  "6A.v.0",
-                  "6N.v.0",
-                  "6Z.v.0",
-                  "CNH.v.0",
-                  "SIR.v.0",
-                  "BTC.v.0",
-                  "ETH.v.0"
+                  "6N.c.0",
+                  "6E.c.0",
+                  "6S.c.0",
+                  "6L.c.0",
+                  "6B.c.0",
+                  "6J.c.0",
+                  "6C.c.0",
+                  "6M.c.0",
+                  "6A.c.0",
+                  "6N.c.0",
+                  "6Z.c.0",
+                  "CNH.c.0",
+                  "SIR.c.0",
+                  "BTC.c.0",
+                  "ETH.c.0"
                 ]
               },
               "columnState": {
@@ -269,15 +269,15 @@
             "state": {
               "params": {
                 "symbol": [
-                  "SR1.v.0",
-                  "ZQ.v.0",
-                  "SR3.v.0",
-                  "ZT.v.0",
-                  "ZF.v.0",
-                  "ZN.v.0",
-                  "TN.v.0",
-                  "ZB.v.0",
-                  "UB.v.0"
+                  "SR1.c.0",
+                  "ZQ.c.0",
+                  "SR3.c.0",
+                  "ZT.c.0",
+                  "ZF.c.0",
+                  "ZN.c.0",
+                  "TN.c.0",
+                  "ZB.c.0",
+                  "UB.c.0"
                 ]
               },
               "columnState": {
@@ -312,16 +312,16 @@
             "state": {
               "params": {
                 "symbol": [
-                  "CL.v.0",
-                  "CL.v.1",
-                  "BZ.v.0",
-                  "BZ.v.1",
-                  "NG.v.0",
-                  "NG.v.1",
-                  "HO.v.0",
-                  "HO.v.1",
-                  "RB.v.0",
-                  "RB.v.1"
+                  "CL.c.0",
+                  "CL.c.1",
+                  "BZ.c.0",
+                  "BZ.c.1",
+                  "NG.c.0",
+                  "NG.c.1",
+                  "HO.c.0",
+                  "HO.c.1",
+                  "RB.c.0",
+                  "RB.c.1"
                 ]
               },
               "columnState": {
@@ -356,14 +356,14 @@
             "state": {
               "params": {
                 "symbol": [
-                  "GC.v.0",
-                  "GC.v.1",
-                  "QO.v.0",
-                  "MGC.v.0",
-                  "SI.v.0",
-                  "PA.v.0",
-                  "PL.v.0",
-                  "HG.v.0"
+                  "GC.c.0",
+                  "GC.c.1",
+                  "QO.c.0",
+                  "MGC.c.0",
+                  "SI.c.0",
+                  "PA.c.0",
+                  "PL.c.0",
+                  "HG.c.0"
                 ]
               },
               "columnState": {
