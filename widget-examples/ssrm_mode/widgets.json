@@ -1,0 +1,14 @@
+{
+    "DataSSRM": {
+        "name": "Server-Side Row Model",
+        "description": "Display a large dataset with server-side sorting, filtering, pagination, and grouping with aggregation",
+        "category": "data-ssrm",
+        "searchCategory": "data-ssrm",
+        "type": "ssrm_table",
+        "endpoint": "data-ssrm",
+        "gridData": {
+            "w": 24,
+            "h": 16
+        }
+    }
+}
