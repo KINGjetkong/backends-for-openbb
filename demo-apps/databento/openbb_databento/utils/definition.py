@@ -4,6 +4,7 @@ from typing import Optional
 from datetime import datetime, timedelta
 import databento as db
 from databento.common.error import BentoError
+from fastapi.exceptions import HTTPException
 from pandas import DataFrame, concat
 
 from openbb_databento.utils.constants import (
@@ -85,6 +86,15 @@ def download_asset_symbols(
         if err.get("case") == "data_end_after_available_end":
             msg = err.get("message", "")
             end_date = msg.split("'")[1].replace(" ", "T") if "'" in msg else None
+        elif err.get("case") == "symbology_invalid_request":
+            msg = err.get("message", "")
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    f"Invalid request for asset {asset}: "
+                    + f"{msg if msg else 'No additional error message provided'}"
+                ),
+            ) from None
         else:
             err_msg = (
                 f"Failed to download term structure data for asset {asset}"

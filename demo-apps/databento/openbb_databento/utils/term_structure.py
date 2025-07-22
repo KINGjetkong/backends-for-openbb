@@ -1,5 +1,5 @@
-
 """Download the term structure for a given asset by date, from CME."""
+
 from typing import Optional
 from datetime import datetime, timedelta
 
@@ -48,7 +48,11 @@ def download_term_structure(
 
     client = cme_database.db_client()
 
-    now = datetime.strptime(date, "%Y-%m-%d") if date is not None else datetime.now().today()
+    now = (
+        datetime.strptime(date, "%Y-%m-%d")
+        if date is not None
+        else datetime.now().today()
+    )
 
     if now.weekday() in [5, 6]:
         # If today is Saturday or Sunday, set 'now' to the previous Friday
@@ -56,10 +60,11 @@ def download_term_structure(
 
     now = now.replace(hour=0, minute=0, second=0, microsecond=0)
     results = DataFrame()
-    asset_symbols = cme_database.get_asset_symbols(asset, now.strftime("%Y-%m-%d"))
-    instrument_ids = asset_symbols.instrument_id.unique().tolist()
-
     try:
+        asset_symbols = cme_database.get_asset_symbols(asset, now.strftime("%Y-%m-%d"))
+        print(asset_symbols)
+        instrument_ids = asset_symbols.instrument_id.unique().tolist()
+
         data = client.timeseries.get_range(
             dataset="GLBX.MDP3",
             schema="statistics",
@@ -72,6 +77,16 @@ def download_term_structure(
         end_date = None
         err = e.args[0]
 
+        if err.get("case") == "symbology_invalid_request":
+            msg = err.get("message", "")
+            raise HTTPException(
+                status_code=500,
+                detail=(
+                    f"Invalid request for asset {asset}: "
+                    + f"{msg if msg else 'No additional error message provided'}"
+                ),
+            ) from None
+
         if err.get("case") == "data_end_after_available_end":
             msg = err.get("message", "")
             end_date = msg.split("'")[1].replace(" ", "T") if "'" in msg else None
@@ -80,8 +95,8 @@ def download_term_structure(
                 status_code=500,
                 detail=(
                     f"Invalid request for asset {asset}: "
-                    +f"{err.get('message', 'No additional error message provided')}"
-                )
+                    + f"{err.get('message', 'No additional error message provided')}"
+                ),
             ) from e
 
         try:
@@ -98,7 +113,7 @@ def download_term_structure(
             cme_database.logger.error(
                 "Case: %s -> Message: %s",
                 exc.args[0].get("case", "No case provided"),
-                exc.args[0].get("message", "No additional error message provided")
+                exc.args[0].get("message", "No additional error message provided"),
             )
             return DataFrame()
 
@@ -117,7 +132,8 @@ def download_term_structure(
         raise BentoError(f"No data found for asset: {asset}")
 
     results.loc[:, "settlement_price"] = results[
-        results["stat_type"] == db.StatType.SETTLEMENT_PRICE]["price"]
+        results["stat_type"] == db.StatType.SETTLEMENT_PRICE
+    ]["price"]
     results = results.dropna(subset=["settlement_price"])
     term_structure_df.instrument_id = term_structure_df.instrument_id.astype(int)
     results.loc[:, "raw_symbol"] = results.instrument_id.map(instrument_id_map)
@@ -126,19 +142,19 @@ def download_term_structure(
     results = results.drop_duplicates(subset=["instrument_id"], keep="last")
     results = results[
         [
-            "date", "instrument_id", "settlement_price",
+            "date",
+            "instrument_id",
+            "settlement_price",
         ]
     ]
-    results = results.query("instrument_id.isin(@term_structure_df.instrument_id)").copy()
-    results.loc[:, "expiration"] = (
-        results.instrument_id.map(
-            term_structure_df.set_index('instrument_id').expiration
-        )
+    results = results.query(
+        "instrument_id.isin(@term_structure_df.instrument_id)"
+    ).copy()
+    results.loc[:, "expiration"] = results.instrument_id.map(
+        term_structure_df.set_index("instrument_id").expiration
     )
-    results.loc[:, "symbol"] = (
-        results.instrument_id.map(
-            term_structure_df.set_index('instrument_id').raw_symbol
-        )
+    results.loc[:, "symbol"] = results.instrument_id.map(
+        term_structure_df.set_index("instrument_id").raw_symbol
     )
     results = results.sort_values(by="expiration").reset_index(drop=True)
 
@@ -176,9 +192,7 @@ def download_term_structure(
 
         return results
 
-    existing_data = cme_database.safe_read_sql(
-    "SELECT * FROM term_structures"
-    )
+    existing_data = cme_database.safe_read_sql("SELECT * FROM term_structures")
 
     if existing_data.empty or asset not in existing_data.asset.unique():
         _ = cme_database.safe_to_sql(
@@ -190,13 +204,15 @@ def download_term_structure(
         )
         return results
 
-    new_data = DataFrame(concat(
-        [
-            existing_data,
-            results,
-        ],
-        ignore_index=True
-    )).drop_duplicates(subset=["asset", "date", "instrument_id"], keep="last")
+    new_data = DataFrame(
+        concat(
+            [
+                existing_data,
+                results,
+            ],
+            ignore_index=True,
+        )
+    ).drop_duplicates(subset=["asset", "date", "instrument_id"], keep="last")
 
     new_data.date = new_data.date.astype(str)
     new_data.instrument_id = new_data.instrument_id.astype(int)

@@ -13,6 +13,7 @@ from typing import Any, Callable, Optional, Literal
 from datetime import datetime, timedelta
 import atexit
 import databento as db
+from fastapi.exceptions import HTTPException
 from pytz import timezone
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
@@ -796,74 +797,75 @@ class CmeDatabase:
         DataFrame
             A DataFrame containing the term structure data for the specified asset.
         """
-        table_names = self.table_names
-        if "asset_names" not in table_names:
-            self.logger.error(
-                "'asset_names' table not found. "
-                + "Generate by running `download_cme_assets`."
+        try:
+            table_names = self.table_names
+            if "asset_names" not in table_names:
+                self.logger.error(
+                    "'asset_names' table not found. "
+                    + "Generate by running `download_cme_assets`."
+                )
+                return DataFrame()
+
+            # Set default date to today if not provided
+            target_date = (
+                datetime.strptime(date, "%Y-%m-%d") if date else datetime.now().today()
             )
-            return DataFrame()
+            target_date = (
+                target_date
+                if target_date.weekday() < 5
+                else target_date - timedelta(days=target_date.weekday() - 4)
+            ).strftime("%Y-%m-%d")
+            # Check if term_structures table exists
+            if "term_structures" not in table_names:
+                return download_term_structure(
+                    cme_database=self,
+                    asset=asset,
+                    date=target_date,
+                )
 
-        # Set default date to today if not provided
-        target_date = (
-            datetime.strptime(date, "%Y-%m-%d") if date else datetime.now().today()
-        )
-        target_date = (
-            target_date
-            if target_date.weekday() < 5
-            else target_date - timedelta(days=target_date.weekday() - 4)
-        ).strftime("%Y-%m-%d")
+            # Check if data exists for this asset and date
+            query = f"""
+            SELECT * FROM term_structures
+            WHERE asset = '{asset}' AND date = '{target_date}'
+            """
+            existing_ts = self.safe_read_sql(query)
 
-        # Check if term_structures table exists
-        if "term_structures" not in table_names:
-            return download_term_structure(
+            # If data exists for the target date, return it
+            if not existing_ts.empty:
+                return existing_ts.sort_values(by=["expiration"]).reset_index(drop=True)
+
+            # Data doesn't exist for this date, download it
+            results = download_term_structure(
                 cme_database=self,
                 asset=asset,
                 date=target_date,
             )
 
-        # Check if data exists for this asset and date
-        query = f"""
-        SELECT * FROM term_structures
-        WHERE asset = '{asset}' AND date = '{target_date}'
-        """
-        existing_ts = self.safe_read_sql(query)
+            if not results.empty:
+                return results.sort_values(by=["expiration"]).reset_index(drop=True)
 
-        # If data exists for the target date, return it
-        if not existing_ts.empty:
+            target_date = datetime.strptime(target_date, "%Y-%m-%d") - timedelta(days=1)
+            target_date = target_date.strftime("%Y-%m-%d")
+
+            self.logger.info(
+                " Checking for the previous date for asset %s on date %s",
+                asset,
+                target_date,
+            )
+
+            # Check if data exists for this asset and previous date
+            query = f"""
+            SELECT * FROM term_structures
+            WHERE asset = '{asset}' AND date = '{target_date}'
+            """
+            existing_ts = self.safe_read_sql(query)
+
+            if existing_ts.empty:
+                return download_term_structure(
+                    cme_database=self,
+                    asset=asset,
+                    date=target_date,
+                )
             return existing_ts.sort_values(by=["expiration"]).reset_index(drop=True)
-
-        # Data doesn't exist for this date, download it
-        results = download_term_structure(
-            cme_database=self,
-            asset=asset,
-            date=target_date,
-        )
-
-        if not results.empty:
-            return results.sort_values(by=["expiration"]).reset_index(drop=True)
-
-        target_date = datetime.strptime(target_date, "%Y-%m-%d") - timedelta(days=1)
-        target_date = target_date.strftime("%Y-%m-%d")
-
-        self.logger.info(
-            " Checking for the previous date for asset %s on date %s",
-            asset,
-            target_date,
-        )
-
-        # Check if data exists for this asset and previous date
-        query = f"""
-        SELECT * FROM term_structures
-        WHERE asset = '{asset}' AND date = '{target_date}'
-        """
-        existing_ts = self.safe_read_sql(query)
-
-        if existing_ts.empty:
-            return download_term_structure(
-                cme_database=self,
-                asset=asset,
-                date=target_date,
-            )
-
-        return existing_ts
+        except HTTPException as exc:
+            raise exc from exc
