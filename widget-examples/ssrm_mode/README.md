@@ -10,9 +10,7 @@ This is a modular FastAPI backend that provides Server-Side Row Model functional
 
 - **Multiple Database Types**: SQLite, MySQL, Snowflake (easily extensible)
 - **Advanced AgGrid Features**: Sorting, filtering, pagination, grouping, aggregation
-- **OpenBB Terminal Pro Integration**: Ready-to-use widget configuration
 - **High Performance**: Optimized queries for large datasets
-- **Easy Customization**: Modular architecture for quick adaptation
 
 ## 🚀 Quick Start
 
@@ -20,15 +18,21 @@ This is a modular FastAPI backend that provides Server-Side Row Model functional
 
 ```bash
 # Navigate to the project directory
-cd example-ssrm
+cd ssrm_mode
 
 # Install Python dependencies
 pip install -r requirements.txt
 ```
 
-### 2. Verify Your Data
+### 2. Identify your dataset
 
-The service comes with a sample SQLite database (`tpv_data.db`). To run with your own data, see the [Customization](#-customization-for-different-databases) section.
+Before starting the service, ensure you have your dataset ready and accessible. The backend supports multiple database types, so you can choose the one that best fits your needs:
+
+- **SQLite**: Ideal for local development and small to medium datasets. Ensure your `.db` file is in the project directory or provide the correct path in the configuration.
+- **MySQL**: Suitable for larger datasets and production environments. Configure your MySQL connection details in the application settings.
+- **Snowflake**: Best for enterprise-level datasets and advanced analytics. Ensure your Snowflake credentials and configurations are correctly set up.
+
+You can easily extend support for other databases by implementing the necessary connection and query logic in the backend code.
 
 ### 3. Start the Service
 
