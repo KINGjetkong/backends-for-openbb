@@ -4312,3 +4312,161 @@ async def get_column_sparkline_data():
             'epsGrowth': 324.75
         }
     ]
+
+
+@register_widget({
+    "name": "Table Widget with Basic Sparklines",
+    "description": "A table widget with basic sparklines showing min/max points",
+    "type": "table",
+    "endpoint": "table_widget_basic_sparklines",
+    "gridData": {"w": 20, "h": 6},
+    "data": {
+        "table": {
+            "columnsDefs": [
+                {
+                    "field": "stock",
+                    "headerName": "Stock",
+                    "cellDataType": "text",
+                    "width": 120,
+                    "pinned": "left"
+                },
+                {
+                    "field": "price_history",
+                    "headerName": "Price History",
+                    "width": 200,
+                    "sparkline": {
+                        "type": "line",
+                        "options": {
+                            "stroke": "#2563eb",
+                            "strokeWidth": 2,
+                            "markers": {
+                                "enabled": True,
+                                "size": 3
+                            },
+                            "pointsOfInterest": {
+                                "maximum": {
+                                    "fill": "#22c55e",
+                                    "stroke": "#16a34a",
+                                    "size": 6
+                                },
+                                "minimum": {
+                                    "fill": "#ef4444",
+                                    "stroke": "#dc2626",
+                                    "size": 6
+                                }
+                            }
+                        }
+                    }
+                },
+                {
+                    "field": "volume",
+                    "headerName": "Volume",
+                    "width": 150,
+                    "sparkline": {
+                        "type": "bar",
+                        "options": {
+                            "fill": "#6b7280",
+                            "stroke": "#4b5563",
+                            "pointsOfInterest": {
+                                "maximum": {
+                                    "fill": "#22c55e",
+                                    "stroke": "#16a34a"
+                                },
+                                "minimum": {
+                                    "fill": "#ef4444",
+                                    "stroke": "#dc2626"
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        }
+    },
+})
+@app.get("/table_widget_basic_sparklines")
+def table_widget_basic_sparklines():
+    """Returns mock data with sparklines"""
+    mock_data = [
+        {
+            "stock": "AAPL",
+            "price_history": [150, 155, 148, 162, 158, 165, 170],
+            "volume": [1000, 1200, 900, 1500, 1100, 1300, 1800]
+        },
+        {
+            "stock": "GOOGL",
+            "price_history": [2800, 2750, 2900, 2850, 2950, 3000, 2980],
+            "volume": [800, 950, 700, 1200, 850, 1100, 1400]
+        },
+        {
+            "stock": "MSFT",
+            "price_history": [340, 335, 350, 345, 360, 355, 365],
+            "volume": [900, 1100, 800, 1300, 950, 1200, 1600]
+        }
+    ]
+    return mock_data
+
+
+@register_widget({
+    "name": "Table Widget with Custom Formatter",
+    "description": "A table widget with custom sparkline formatter for profit/loss",
+    "type": "table",
+    "endpoint": "table_widget_custom_formatter",
+    "gridData": {"w": 20, "h": 6},
+    "data": {
+        "table": {
+            "columnsDefs": [
+                {
+                    "field": "company",
+                    "headerName": "Company",
+                    "cellDataType": "text",
+                    "width": 150,
+                    "pinned": "left"
+                },
+                {
+                    "field": "profit_loss",
+                    "headerName": "P&L Trend",
+                    "width": 200,
+                    "sparkline": {
+                        "type": "bar",
+                        "options": {
+                            "customFormatter": "(params) => ({ fill: params.yValue >= 0 ? '#22c55e' : '#ef4444', stroke: params.yValue >= 0 ? '#16a34a' : '#dc2626' })"
+                        }
+                    }
+                },
+                {
+                    "field": "revenue_growth",
+                    "headerName": "Revenue Growth",
+                    "width": 200,
+                    "sparkline": {
+                        "type": "bar",
+                        "options": {
+                            "customFormatter": "(params) => ({ fill: params.yValue > 10 ? '#22c55e' : params.yValue < 0 ? '#ef4444' : '#f59e0b', fillOpacity: 0.3, stroke: params.yValue > 10 ? '#16a34a' : params.yValue < 0 ? '#dc2626' : '#d97706' })"
+                        }
+                    }
+                }
+            ]
+        }
+    },
+})
+@app.get("/table_widget_custom_formatter")
+def table_widget_custom_formatter():
+    """Returns mock data with custom formatter"""
+    mock_data = [
+        {
+            "company": "TechCorp",
+            "profit_loss": [5, -2, 8, -3, 12, 7, -1],
+            "revenue_growth": [15, 8, -5, 20, -8, 25, 18]
+        },
+        {
+            "company": "DataSoft",
+            "profit_loss": [10, -5, 15, -8, 20, 12, -3],
+            "revenue_growth": [12, 5, 8, -2, 15, 10, 22]
+        },
+        {
+            "company": "CloudInc",
+            "profit_loss": [8, -15, 25, 12, -5, 18, 28],
+            "revenue_growth": [8, -3, 12, 18, 6, 14, 9]
+        }
+    ]
+    return mock_data
