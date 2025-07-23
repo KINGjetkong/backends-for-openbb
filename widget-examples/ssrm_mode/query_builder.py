@@ -101,7 +101,6 @@ class QueryBuilder:
 
         # Handle group keys - add WHERE conditions for expanded groups
         if self.ag_rows.options.groupKeys:
-            print(f"🔧 Processing group keys: {self.ag_rows.options.groupKeys}")
             for index, key in enumerate(self.ag_rows.options.groupKeys):
                 # Make sure we don't go out of bounds
                 if index < len(self.ag_rows.options.rowGroupCols):
@@ -113,11 +112,9 @@ class QueryBuilder:
                     escaped_col = self.escape_column(col_field)
                     where_condition = f"{escaped_col} = '{escaped_key}'"
                     where_parts.append(where_condition)
-                    print(f"🔧 Added group WHERE condition: {where_condition}")
 
         # Handle filter model - explicit user filters
         if self.ag_rows.options.filterModel:
-            print(f"🔧 Processing filter model: {self.ag_rows.options.filterModel}")
             for field_name, filter_config in self.ag_rows.options.filterModel.items():
                 filter_type = filter_config.get("filterType", "text")
 
@@ -138,10 +135,8 @@ class QueryBuilder:
 
         if where_parts:
             where_clause = f" WHERE {' AND '.join(where_parts)}"
-            print(f"🔧 Final WHERE clause: {where_clause}")
             return where_clause
 
-        print("🔧 No WHERE clause needed")
         return ""
 
     def _build_text_filter(
@@ -314,10 +309,8 @@ class QueryBuilder:
                 f"{self.create_limit_sql()}"
             )
 
-            print(f"🔧 Generated SQL: {query.strip()}")
             return query.strip()
         except Exception as e:
-            print(f"Error building SQL query: {str(e)}")
             import traceback
 
             traceback.print_exc()
@@ -341,5 +334,4 @@ class QueryBuilder:
             # Regular count query
             return f"SELECT COUNT(*) FROM {self.table_name}{self.create_where_sql()}"
         except Exception as e:
-            print(f"Error building count query: {str(e)}")
             raise

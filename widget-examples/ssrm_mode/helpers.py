@@ -52,9 +52,6 @@ async def perform_ssrm_query(
         main_query = query_builder.build_query()
         count_query = query_builder.build_count_query()
 
-        print(f"Executing count query: {count_query}")
-        print(f"Executing main query: {main_query}")
-
         # Execute count query first
         total_count = db_manager.execute_count_query(count_query)
 
@@ -68,7 +65,6 @@ async def perform_ssrm_query(
         return total_count, formatted_results
 
     except Exception as e:
-        print(f"Error in perform_ssrm_query: {e}")
         raise
 
 

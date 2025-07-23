@@ -133,10 +133,6 @@ async def get_data_ssrm(
         # Execute the SSRM query using our helper function
         total_count, formatted_results = await perform_ssrm_query(db_manager, ag_rows)
 
-        print("✅ Query executed successfully:")
-        print(f"   📊 Total rows found: {total_count}")
-        print(f"   📄 Returned rows: {len(formatted_results)}")
-
         # Results are already formatted and cleaned by our modular system
         clean_results = formatted_results
 
@@ -144,17 +140,7 @@ async def get_data_ssrm(
         # Must contain data + rows - debug_info is optional
         response = {
             "rowData": clean_results,
-            "rowCount": total_count,
-            "debug_info": {
-                "has_grouping": bool(ag_options.rowGroupCols),
-                "group_columns": len(ag_options.rowGroupCols or []),
-                "active_filters": len(ag_options.filterModel or {}),
-                "sort_columns": len(ag_options.sortModel or []),
-                "is_pivot_mode": ag_options.pivotMode or False,
-                "page_size": ag_options.page_size(),
-                "current_page": (ag_options.startRow or 0) // ag_options.page_size()
-                + 1,
-            },
+            "rowCount": total_count
         }
 
         return response
