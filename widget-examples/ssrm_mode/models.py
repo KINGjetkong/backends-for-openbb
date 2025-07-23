@@ -29,18 +29,18 @@ class AgGridOptions(BaseModel):
 
     def is_doing_grouping(self) -> bool:
         """Check if grouping is being performed"""
-        return bool(self.rowGroupCols)
+        return len(self.rowGroupCols or []) > len(self.groupKeys or [])
 
     def get_row_group_column(self):
         """Get the current row group column for hierarchical grouping"""
-        if self.rowGroupCols and len(self.rowGroupCols) > len(self.groupKeys or []):
+        if self.rowGroupCols and len(self.rowGroupCols) >= len(self.groupKeys or []):
             return self.rowGroupCols[len(self.groupKeys or [])]
         return None
 
     def page_size(self) -> int:
         """Calculate page size from start and end rows"""
-        if self.startRow is None or self.endRow is None:
-            return 100
+        if self.startRow > self.endRow:
+            return 0
         return self.endRow - self.startRow
 
 

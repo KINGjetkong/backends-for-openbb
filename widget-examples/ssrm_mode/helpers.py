@@ -59,8 +59,7 @@ async def perform_ssrm_query(
         results = db_manager.execute_query(main_query)
 
         # Format results for JSON response
-        is_grouped = ag_rows.options.is_doing_grouping()
-        formatted_results = format_query_results(results, is_grouped)
+        formatted_results = format_query_results(results)
 
         return total_count, formatted_results
 
