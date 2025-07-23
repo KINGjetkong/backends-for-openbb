@@ -16,33 +16,6 @@ def get_database_path(custom_path: str = None) -> Path:
         return Path(custom_path)
     return Path(__file__).parent / DEFAULT_DATABASE_NAME
 
-
-# Query Configuration
-DEFAULT_PAGE_SIZE = 500
-SQL_ESCAPE_CHAR = '"'
-
-# Filter types supported by the system
-SUPPORTED_FILTER_TYPES = ["text", "number", "set"]
-
-# Text filter operations mapping
-TEXT_FILTER_OPS = {
-    "contains": "LIKE",
-    "equals": "=",
-    "startsWith": "LIKE",
-    "endsWith": "LIKE",
-    "notContains": "NOT LIKE",
-}
-
-# Number filter operations mapping
-NUMBER_FILTER_OPS = {
-    "equals": "=",
-    "greaterThan": ">",
-    "lessThan": "<",
-    "greaterThanOrEqual": ">=",
-    "lessThanOrEqual": "<=",
-    "inRange": "BETWEEN",
-}
-
 # Aggregation functions supported
 SUPPORTED_AGG_FUNCTIONS = ["sum", "avg", "count", "min", "max"]
 

@@ -154,8 +154,7 @@ pip install mysql-connector-python
 **To add support for a new database type:**
 
 1. **Extend `database.py`**: Add a new connection class (see `MySQLConnection` example)
-2. **Update `config.py`**: Add configuration method for your database
-3. **Update `helpers.py`**: Add factory method support
+2. **Update `helpers.py`**: Add factory method support
 
 **Example for PostgreSQL:**
 
