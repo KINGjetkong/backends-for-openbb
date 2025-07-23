@@ -102,6 +102,7 @@ Set up your widgets in the widgets.json to work with OpenBB Workspace.
     }
 }
 
+```
 ## 🔧 Customization for Different Databases
 
 ### Option 1: SQLite (Easiest)
@@ -119,6 +120,7 @@ db_manager = create_database_manager(
     table_name="your_table_name",  # Change this
 )
 ```
+
 
 ### Option 2: MySQL
 
