@@ -12,8 +12,8 @@ from models import AgGridOptions, AgRows
 
 # Initialize FastAPI application
 app = FastAPI(
-    title="Generic SSRM AgGrid API",
-    description="Server-Side Row Model API for AgGrid with modular database support",
+    title="Demo SSRM AgGrid API",
+    description="Server-Side Row Model API for AgGrid with demo financial data",
     version="1.0.0",
 )
 
@@ -29,20 +29,20 @@ app.add_middleware(
 )
 
 # Initialize database manager
-# Note: Ensure you have 'tpv_data.db' file in the same directory or provide correct path
+# Note: Ensure you have 'demo_data.db' file in the same directory or provide correct path
 db_manager = create_database_manager(
     database_type="sqlite",
-    file_path=Path(__file__).parent / "tpv_data.db",
-    table_name="tpv_data",
+    file_path=Path(__file__).parent / "demo_data.db",
+    table_name="demo_data",
 )
 
 
 @app.get("/")
 def get_root():
     return {
-        "name": "Generic SSRM AgGrid API",
+        "name": "Demo SSRM AgGrid API",
         "version": "1.0.0",
-        "description": "Server-Side Row Model API for AgGrid with modular database support",
+        "description": "Server-Side Row Model API for AgGrid with demo financial data",
     }
 
 

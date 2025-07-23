@@ -1,8 +1,8 @@
-# SSRM AgGrid Backend - Quickstart Guide
+# SSRM AgGrid Demo Backend - Quickstart Guide
 
 This guide will help you set up, customize, and run the Server-Side Row Model (SSRM) AgGrid backend service for any dataset and database.
 
-This is useful when you have more than 200,000 rows and notice performance issues while using the service.
+This demo uses fake financial data for demonstration purposes and is useful when you have more than 200,000 rows and notice performance issues while using the service.
 
 ## 📋 Overview
 
@@ -11,6 +11,7 @@ This is a modular FastAPI backend that provides Server-Side Row Model functional
 - **Multiple Database Types**: SQLite, MySQL, Snowflake (easily extensible)
 - **Advanced AgGrid Features**: Sorting, filtering, pagination, grouping, aggregation
 - **High Performance**: Optimized queries for large datasets
+- **Demo Data**: Includes fake financial data for testing and demonstration
 
 ## 🚀 Quick Start
 
@@ -24,9 +25,16 @@ cd ssrm_mode
 pip install -r requirements.txt
 ```
 
-### 2. Identify your dataset
+### 2. Generate Demo Data (Optional)
 
-Before starting the service, ensure you have your dataset ready and accessible. The backend supports multiple database types, so you can choose the one that best fits your needs:
+This demo comes with a script to generate fake financial data for testing:
+
+```bash
+# Generate demo database with 50,000 fake records
+python create_demo_db.py
+```
+
+Alternatively, you can use your own dataset. The backend supports multiple database types:
 
 - **SQLite**: Ideal for local development and small to medium datasets. Ensure your `.db` file is in the project directory or provide the correct path in the configuration.
 - **MySQL**: Suitable for larger datasets and production environments. Configure your MySQL connection details in the application settings.
@@ -100,7 +108,7 @@ Set up your widgets in the widgets.json to work with OpenBB Workspace.
 
 **For new SQLite database:**
 
-1. Replace `tpv_data.db` with your database file
+1. Replace `demo_data.db` with your database file
 2. Update `main.py`:
 
 ```python

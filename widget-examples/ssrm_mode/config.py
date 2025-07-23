@@ -6,8 +6,8 @@ Contains configurable settings that can be adapted to any database and table str
 from pathlib import Path
 
 # Default Database Configuration (can be overridden)
-DEFAULT_DATABASE_NAME = "test_data.db"
-DEFAULT_TABLE_NAME = "data"
+DEFAULT_DATABASE_NAME = "demo_data.db"
+DEFAULT_TABLE_NAME = "demo_data"
 
 
 def get_database_path(custom_path: str = None) -> Path:
