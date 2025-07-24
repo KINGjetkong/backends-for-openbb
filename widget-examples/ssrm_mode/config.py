@@ -9,6 +9,8 @@ from pathlib import Path
 DEFAULT_DATABASE_NAME = "demo_data.db"
 DEFAULT_TABLE_NAME = "demo_data"
 
+SQL_ESCAPE_CHAR = '"'
+
 
 def get_database_path(custom_path: str = None) -> Path:
     """Get database path, allowing for custom override"""
