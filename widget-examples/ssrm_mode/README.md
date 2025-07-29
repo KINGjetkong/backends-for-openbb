@@ -27,12 +27,9 @@ pip install -r requirements.txt
 
 ### 2. Generate Demo Data (Optional)
 
-This demo comes with a script to generate fake financial data for testing:
+This demo comes with a mock database to test.
 
-```bash
-# Generate demo database with 50,000 fake records
-python create_demo_db.py
-```
+demo_data.db
 
 Alternatively, you can use your own dataset. The backend supports multiple database types:
 
