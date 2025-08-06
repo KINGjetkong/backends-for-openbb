@@ -1,0 +1,14 @@
+{
+    "DemoDataSSRM": {
+        "name": "Demo Financial Data (SSRM)",
+        "description": "Display demo financial dataset with server-side sorting, filtering, pagination, and grouping with aggregation",
+        "category": "demo-data",
+        "searchCategory": "demo-data",
+        "type": "ssrm_table",
+        "endpoint": "data-ssrm",
+        "gridData": {
+            "w": 24,
+            "h": 16
+        }
+    }
+}
