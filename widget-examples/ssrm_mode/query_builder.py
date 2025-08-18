@@ -108,7 +108,7 @@ class QueryBuilder:
                     col_field = row_group_col.get("field", row_group_col.get("id", ""))
 
                     # Properly escape the key value to prevent SQL injection
-                    escaped_key = key.replace("'", "''")  # Escape single quotes
+                    escaped_key = str(key).replace("'", "''")  # Escape single quotes
                     escaped_col = self.escape_column(col_field)
                     where_condition = f"{escaped_col} = '{escaped_key}'"
                     where_parts.append(where_condition)
