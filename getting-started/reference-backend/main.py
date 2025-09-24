@@ -5,7 +5,7 @@ import requests
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from plotly_config import get_theme_colors, base_layout, get_toolbar_config
@@ -362,6 +362,208 @@ def markdown_widget_with_local_image():
             status_code=500,
             detail=f"Error reading image: {str(e)}"
         ) from e
+
+
+# Simple HTML widget with mockup data
+# Note that the gridData specifies the size of the widget in the OpenBB Workspace
+@register_widget({
+    "name": "HTML Widget",
+    "description": "A HTML widget with interactive dashboard",
+    "type": "html",
+    "endpoint": "html_widget",
+    "gridData": {"w": 40, "h": 20},
+})
+@app.get("/html_widget", response_class=HTMLResponse)
+def html_widget():
+    """Returns an HTML widget with mockup data"""
+    return HTMLResponse(content="""
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 12px rgba(0,0,0,0.15);
+        }
+        .stat-value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #333;
+        }
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+        .stat-change {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            margin-top: 10px;
+        }
+        .positive {
+            background: #d4edda;
+            color: #155724;
+        }
+        .negative {
+            background: #f8d7da;
+            color: #721c24;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 1s ease;
+            animation: fillAnimation 2s ease-out;
+        }
+        @keyframes fillAnimation {
+            from { width: 0%; }
+        }
+        .button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: opacity 0.2s;
+        }
+        .button:hover {
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Portfolio Dashboard</h1>
+            <p>Real-time market overview and analytics</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">$124,563</div>
+                <div class="stat-label">Total Portfolio Value</div>
+                <span class="stat-change positive">+5.4% today</span>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value">42</div>
+                <div class="stat-label">Active Positions</div>
+                <span class="stat-change positive">+3 this week</span>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value">$8,421</div>
+                <div class="stat-label">Daily P&L</div>
+                <span class="stat-change positive">+12.3%</span>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-value">0.87</div>
+                <div class="stat-label">Sharpe Ratio</div>
+                <span class="stat-change negative">-0.05</span>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>Performance Overview</h3>
+            <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+                <div style="flex: 1; margin-right: 20px;">
+                    <div>Tech Stocks (68%)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 68%;"></div>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <div>Fixed Income (32%)</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 32%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="chart-container">
+            <h3>Recent Activity</h3>
+            <ul style="list-style: none; padding: 0;">
+                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <strong>AAPL</strong> - Bought 100 shares @ $182.50
+                    <span style="float: right; color: #666;">2 hours ago</span>
+                </li>
+                <li style="padding: 10px 0; border-bottom: 1px solid #eee;">
+                    <strong>GOOGL</strong> - Sold 50 shares @ $141.20
+                    <span style="float: right; color: #666;">5 hours ago</span>
+                </li>
+                <li style="padding: 10px 0;">
+                    <strong>MSFT</strong> - Bought 75 shares @ $378.80
+                    <span style="float: right; color: #666;">Yesterday</span>
+                </li>
+            </ul>
+        </div>
+        
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="button" onclick="alert('Refreshing data...')">Refresh Dashboard</button>
+        </div>
+    </div>
+    
+    <script>
+        // Add some interactive behavior
+        document.querySelectorAll('.stat-card').forEach(card => {
+            card.addEventListener('click', function() {
+                this.style.transform = 'scale(1.05)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>
+""")
 
 
 @register_widget({
