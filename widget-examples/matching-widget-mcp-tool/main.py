@@ -98,7 +98,7 @@ def get_widgets():
     "name": "Company Revenue Dashboard",
     "description": "Revenue metrics dashboard with ticker selection and date range filtering",
     "type": "table",
-    "endpoint": "dynamic_aggrid_table",
+    "endpoint": "revenue_mockup_data",
     "gridData": {"w": 24, "h": 12},
     "mcp_tool": {
       "mcp_server": "Financial Data",
@@ -299,8 +299,8 @@ def _generate_revenue_data(start_dt, ticker, day_offset):
     }
 
 
-@app.get("/dynamic_aggrid_table")
-def dynamic_aggrid_table(
+@app.get("/revenue_mockup_data")
+def revenue_mockup_data(
     start_date: str = (datetime.now() - timedelta(days=7)).strftime("%Y-%m-%d"),
     ticker: str = "AAPL"
 ):
@@ -338,5 +338,5 @@ if __name__ == "__main__":
     import uvicorn
     print("Starting AgGrid Widget Demo server...")
     print("Visit http://localhost:8012/widgets.json to see registered widgets")
-    print("The widget endpoint is available at http://localhost:8012/dynamic_aggrid_table")
+    print("The widget endpoint is available at http://localhost:8012/revenue_mockup_data")
     uvicorn.run(app, host="0.0.0.0", port=8012)
