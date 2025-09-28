@@ -1,215 +1,65 @@
 # Matching Widget to MCP Tool - Reference Example
 
-This project serves as a reference implementation for the [Matching widget to MCP tool](https://docs.openbb.co/pro/widgets/matching-widget-to-mcp-tool) documentation. It demonstrates how to configure widget citations that automatically appear when specific MCP tools are used.
-
-## What This Example Demonstrates
-
-When a specific MCP tool is invoked in OpenBB Copilot, this example shows how to:
-- Configure corresponding widget citations through `widgets.json` 
-- Automatically generate widget citations marked with `*` in the AI response
-- Allow users to add the matching widget to their dashboard with the same parameters used by the MCP tool
-
-## Project Components
-
-- **`mcp_server.py`** - MCP server exposing the `get_company_revenue_data` tool (primary)
-- **`main.py`** - OpenBB widget backend that can cite the MCP tool (secondary)
-- **Widget-MCP Matching** - Configuration in `widgets.json` that creates the citation link
-
-## Quick Start
-
-### 1. Install Dependencies
+Reference implementation for widget citations when MCP tools are used. Start both servers:
 
 ```bash
-# Create a virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install required packages
-pip install -r requirements.txt
-```
-
-### 2. Start Both Servers
-
-```bash
-# Terminal 1: Start the widget backend
-python main.py
-
-# Terminal 2: Start the MCP server  
+# Start the MCP server  
 python mcp_server.py
+
+# Start the widget backend
+python main.py
 ```
 
-Verify both are running:
-- Widget backend: http://localhost:8012/widgets.json
-- MCP server: http://localhost:8014/mcp
+## 1. Connecting MCP Server
 
-## Backend for OpenBB (`main.py`)
-
-The Backend for OpenBB provides a FastAPI server that serves an OpenBB Workspace widget for displaying company revenue data.
-
-### Features
-
-- **📅 Date Picker**: Select start date for revenue data (7-day range)
-- **📊 Ticker Dropdown**: Select from major tech stocks (AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA)
-- **💰 Revenue Metrics**: Daily revenue data with percentage changes and trends
-- **Advanced Table Features**: Column definitions, formatting, sorting, filtering
-- **Sparklines**: 7-day trend visualization with min/max highlighting
-- **Color Coding**: Status indicators (Good/Warning/Critical)
-- **Chart View**: Toggle between table and column chart views
-
-### Integration with OpenBB Workspace
-
-1. **Open OpenBB Workspace**
-2. **Add Custom Backend**:
-   - Go to Settings → Widgets
-   - Add custom backend URL: `http://localhost:8012`
-3. **Widget Discovery**:
-   - The widget "Company Revenue Dashboard" should appear in the widgets menu
-4. **Add to Dashboard**:
-   - Drag the widget to your dashboard
-   - Configure the parameters as needed
-
-### Widget Configuration
-
-The widget accepts these parameters:
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `start_date` | Date | 7 days ago | Starting date for revenue data |
-| `ticker` | Dropdown | "AAPL" | Company ticker symbol |
-
-#### Available Tickers:
-- **AAPL**: Apple Inc.
-- **MSFT**: Microsoft Corp.
-- **GOOGL**: Alphabet Inc.
-- **AMZN**: Amazon.com Inc.
-- **TSLA**: Tesla Inc.
-- **META**: Meta Platforms Inc.
-- **NVDA**: NVIDIA Corp.
-
-## MCP Server (`mcp_server.py`)
-
-The MCP Server provides a FastMCP server that exposes company revenue data as an MCP tool, making it accessible to AI assistants and other MCP-compatible clients.
-
-### Features
-
-- **🤖 MCP Tool**: `get_company_revenue_data` tool for AI assistants
-- **📈 Revenue Analytics**: 7 days of revenue data with summary statistics
-- **🔧 Flexible Parameters**: Ticker symbol and date range selection
-- **🌐 HTTP Transport**: Accessible via HTTP at `/mcp` endpoint
-- **🔗 CORS Support**: Properly configured for cross-origin requests
-
-### MCP Tool Documentation
-
-**Tool Name**: `get_company_revenue_data`
-
-**Parameters**:
-- `ticker` (string): Company ticker symbol (default: "AAPL")
-  - Valid values: AAPL, MSFT, GOOGL, AMZN, TSLA, META, NVDA
-- `start_date` (string, optional): Start date in YYYY-MM-DD format (defaults to 7 days ago)
-
-**Returns**: JSON string with revenue data including:
-- Company information (name, sector)
-- 7 days of revenue data with trends
-- Summary statistics (total revenue, average daily revenue)
-
-### Integration with AI Assistants
-
-For Claude Desktop integration, add to your `~/.claude_desktop_config.json`:
-```json
-{
-  "mcpServers": {
-    "revenue-data": {
-      "command": "python",
-      "args": ["/path/to/your/project/mcp_server.py"]
-    }
-  }
-}
-```
-
-## Complete Integration Example
-
-This section walks through the exact steps to set up widget-to-MCP tool matching, following the same flow as the official documentation.
-
-### How It Works
-
-The primary workflow starts with MCP tools. When a specific MCP tool is invoked, OpenBB Workspace checks if there's a widget configured to cite that exact tool. If found:
-1. A notification appears: "Matching widget found"
-2. A widget citation is automatically generated and attached to the MCP tool response  
-3. The citation allows users to add the corresponding widget to their dashboard
-
-> **Important**: The widget's `mcp_server` and `tool_id` must match exactly with the existing MCP server configuration.
-
-### Step 1: Connect MCP Server (Primary)
-
-**The MCP server must be connected first**, as this is what drives the workflow. Connect your MCP server to OpenBB Workspace:
-
-1. Go to **Settings → MCP Servers**
-2. Add server with name: **"Financial Data"** 
-3. Add server URL: `http://localhost:8014/mcp`
+Go to **Settings → MCP Servers** and add:
+- **Server name**: "Financial Data"
+- **Server URL**: `http://localhost:8014/mcp`
 
 ![MCP Server Connection](https://openbb-cms.directus.app/assets/6d66dcf3-98c0-4150-aace-035a063df35a.png)
-
-*The MCP server name "Financial Data" must match exactly with the widget configuration.*
 
 Verify the tool is available:
 
 ![MCP Tool Available](https://openbb-cms.directus.app/assets/643af141-6b8c-4828-b7dc-2242560d71f8.png)
 
-*Confirm "get_company_revenue_data" tool is listed and matches the widget `tool_id`.*
+## 2. Connecting OpenBB Widget
 
-### Step 2: Configure Widget to Cite the MCP Tool
-
-**Now that the MCP server exists**, configure a widget to automatically cite it when the tool is used. The widget configuration in `main.py` includes the citation metadata:
-
-```python
-"mcp_tool": {
-    "mcp_server": "Financial Data",           # References the existing MCP server name
-    "tool_id": "get_company_revenue_data"     # References the existing MCP tool name  
-}
-```
-
-Connect the widget backend:
-
-1. Go to **Settings → Widgets**
-2. Add backend name: Any name (e.g., "Revenue Data Backend")
-3. Add backend URL: `http://localhost:8012`
+Go to **Settings → Widgets** and add:
+- **Backend name**: Any name
+- **Backend URL**: `http://localhost:8012`
 
 ![Widget Backend Connection](https://openbb-cms.directus.app/assets/77a2c0d8-3a9b-47a7-933e-85e7131ef954.png)
 
-*The backend name can be anything, but the URL must point to your widget server.*
+The widget includes MCP tool reference in `widgets.json`:
 
-The widget will appear with the MCP tool configuration:
+```python
+"mcp_tool": {
+    "mcp_server": "Financial Data",           # Must match MCP server name exactly
+    "tool_id": "get_company_revenue_data"     # Must match MCP tool name exactly  
+}
+```
 
 ![Widget with MCP Configuration](https://openbb-cms.directus.app/assets/1603ad32-6bd2-43bc-a4cc-553cb4163c34.png)
 
-*The `mcp_tool` property configures this widget to automatically cite the existing MCP tool.*
+## 3. Matching Widget Outcome
 
-### Step 3: Experience the Citation
+Ask the Copilot: *"Use the financial data MCP tool and get company revenue data for AAPL"*
 
-Now test the MCP-to-widget citation flow:
-
-1. **Use the MCP Tool**: Ask the Copilot to use the existing MCP tool:
-   > "Use the financial data MCP tool and get company revenue data for AAPL"
-
-2. **Automatic Citation Detection**: A toast appears when the widget citation is found:
+**Toast notification appears:**
 
 ![Matching Widget Found](https://openbb-cms.directus.app/assets/655482de-3d2b-426c-8315-dbb579c78f16.png)
 
-3. **View the Citation**: The response includes a widget citation with `*`:
+**Widget citation with `*` in response:**
 
 ![Widget Citation](https://openbb-cms.directus.app/assets/d2c50edb-43e2-4771-9125-b31117501a61.png)
 
-*The asterisk indicates this is a matching widget citation.*
-
-4. **Add to Dashboard**: Hover over the citation to add the widget:
+**Hover to add widget to dashboard:**
 
 ![Add to Dashboard](https://openbb-cms.directus.app/assets/a719abc4-9b2f-41c7-b1a8-dd84fc707b77.png)
 
-5. **Interactive Widget**: The widget appears with the same parameters:
+**Interactive widget with same parameters:**
 
 ![Interactive Widget](https://openbb-cms.directus.app/assets/6f0df91c-195f-48c4-9fbe-13ed589245a9.png)
-
-*Now you can interact with parameters, charting, and all OpenBB widget features.*
 
 ## Data Generation Strategy
 
