@@ -10,6 +10,7 @@ from fastapi import FastAPI, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from openbb_core.provider.abstract.data import Data
+from numpy import nan
 from pandas import DataFrame, DateOffset, DatetimeIndex, Timestamp, to_datetime
 from pydantic import Field
 
@@ -91,7 +92,7 @@ class HoldingsData(Data):
     )
 
 
-@app.get("/templates.json", openapi_extra={"widget_config": {"exclude": True}})
+@app.get("/apps.json", openapi_extra={"widget_config": {"exclude": True}})
 async def get_templates():
     """Get templates."""
     return [
@@ -316,10 +317,12 @@ async def get_templates():
         }
     ]
 
+
 @app.get("/health")
 async def health_check():
     """Health check endpoint."""
     return {"status": "ok"}
+
 
 @app.get(
     "/fama_french_info",
@@ -795,7 +798,11 @@ async def get_factor_choices(
             "name": "Portfolio Factor Attributions",
             "type": "chart",
             "gridData": {"w": 40, "h": 20},
-            "params": [{"paramName": "theme", "show": False}],
+            "params": [
+                {"paramName": "theme", "show": False},
+                {"paramName": "raw", "show": False},
+            ],
+            "raw": True,
         }
     },
 )
@@ -833,7 +840,8 @@ async def portfolio_factors(
     ] = "5_Factors",
     portfolio: Literal["Client 1", "Client 2", "Client 3"] = "Client 1",
     theme: str = "dark",
-) -> dict:
+    raw: bool = False,
+) -> dict | list:
     """Get dataset."""
     frequency = "daily"
     if not factor:
@@ -977,6 +985,9 @@ async def portfolio_factors(
             ]
             records = model.convert_dtypes().to_dict(orient="records")
             coefficients.extend(records)
+
+        if raw is True:
+            return coefficients
 
         pivoted = DataFrame(coefficients).pivot_table(
             columns="factor",
@@ -1291,7 +1302,11 @@ async def portfolio_underlying_returns(
             "name": "Portfolio Holdings Correlations",
             "type": "chart",
             "gridData": {"w": 40, "h": 20},
-            "params": [{"paramName": "theme", "show": False}],
+            "params": [
+                {"paramName": "theme", "show": False},
+                {"paramName": "raw", "show": False, "value": False},
+            ],
+            "raw": True,
         },
     },
 )
@@ -1310,7 +1325,8 @@ async def holdings_correlation(
         ),
     ] = "3 Month",
     theme: str = "dark",
-) -> dict:
+    raw: bool = True,
+) -> dict | list:
     """Get portfolio holdings."""
     import json
 
@@ -1338,9 +1354,17 @@ async def holdings_correlation(
     if data is not None:
         fig = correlation_matrix(
             data,
-            chart=True,
+            chart=raw is False,
             theme=theme,
         )
+        if raw is True:
+            df = (
+                fig.reset_index()
+                .dropna(how="all", axis=0)
+                .dropna(how="all", axis=1)
+                .replace({nan: None})
+            )
+            return df.iloc[1:].to_dict("records")
         fig_json = json.loads(fig.to_json())
 
     return fig_json
