@@ -353,7 +353,7 @@ udf_database.get_symbol_info("ES.c.0")
 The database can be updated with new data from a Python interpreter. In practice, one might set an API background task to update every N minutes/hours.
 
 ```python
-from openbb_database.utils.database import CmeDatabase
+from openbb_databento.utils.database import CmeDatabase
 
 cme_database = CmeDatabase()
 
@@ -365,6 +365,13 @@ This will gather all symbols that are currently in the database, and append new 
 The updates will be batched in groups of 2000 symbols.
 
 ### Streaming Trades
+
+> If the streaming tables are not receiving any data, the database of current symbols may need to be updated.
+>```python
+> from openbb_databento.utils.database import CmeDatabase
+> cme_database = CmeDatabase()
+> cme_database.generate_futures_symbols_db()
+>```
 
 Streaming tables in OpenBB Workspace require two endpoints, a GET request for populating the initial table and serving AI features,
 and a WebSocket endpoint for feeding the updates.
