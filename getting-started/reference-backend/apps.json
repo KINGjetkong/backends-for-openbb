@@ -1,9 +1,9 @@
 [
   {
     "name": "Template App",
-    "img": "https://didierlopes.com/blog/2025-01-30-what-it-means-to-have-skin-in-the-game.png",
-    "img_dark": "",
-    "img_light": "",
+    "img": "https://repository-images.githubusercontent.com/323048702/4659bbdb-ae11-4f51-8a16-860fa9dfc551",
+    "img_dark": "https://repository-images.githubusercontent.com/323048702/4659bbdb-ae11-4f51-8a16-860fa9dfc551",
+    "img_light": "https://repository-images.githubusercontent.com/323048702/4659bbdb-ae11-4f51-8a16-860fa9dfc551",
     "description": "This is a template app that demonstrates how to create a simple app with the OpenBB Workspace. It highlights the different types of widgets that can be used in the OpenBB Workspace, the different ways to customize the widgets and the different ways to use parameters.",
     "allowCustomization": true,
     "tabs": {
@@ -16,63 +16,40 @@
             "x": 0,
             "y": 2,
             "w": 40,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget",
             "x": 0,
             "y": 7,
             "w": 12,
-            "h": 4
+            "h": 4,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_error_handling",
             "x": 24,
             "y": 7,
             "w": 16,
-            "h": 8
-          },
-          {
-            "i": "multi_pdf_base64",
-            "x": 20,
-            "y": 31,
-            "w": 20,
-            "h": 13,
-            "state": {
-              "params": {
-                "pdf_name": [
-                  "Sample"
-                ]
-              }
-            }
-          },
-          {
-            "i": "multi_pdf_url",
-            "x": 20,
-            "y": 44,
-            "w": 20,
-            "h": 14,
-            "state": {
-              "params": {
-                "pdf_name": [
-                  "Sample"
-                ]
-              }
-            }
+            "h": 8,
+            "groups": []
           },
           {
             "i": "pdf_widget_base64",
             "x": 0,
-            "y": 31,
+            "y": 39,
             "w": 20,
-            "h": 13
+            "h": 15,
+            "groups": []
           },
           {
             "i": "pdf_widget_url",
             "x": 0,
-            "y": 44,
+            "y": 54,
             "w": 20,
-            "h": 14
+            "h": 16,
+            "groups": []
           },
           {
             "i": "table_widget",
@@ -85,7 +62,8 @@
                 "enabled": false,
                 "chartType": "line"
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "table_widget_from_api_endpoint",
@@ -98,21 +76,62 @@
                 "enabled": false,
                 "chartType": "line"
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "markdown_widget_with_local_image",
             "x": 0,
-            "y": 15,
+            "y": 23,
             "w": 20,
-            "h": 16
+            "h": 16,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_image_from_url",
             "x": 20,
-            "y": 15,
+            "y": 23,
             "w": 20,
-            "h": 16
+            "h": 16,
+            "groups": []
+          },
+          {
+            "i": "/multi_pdf_base64",
+            "x": 20,
+            "y": 39,
+            "w": 20,
+            "h": 15,
+            "state": {
+              "params": {
+                "pdf_name": [
+                  "Sample"
+                ]
+              }
+            },
+            "groups": []
+          },
+          {
+            "i": "/multi_pdf_url",
+            "x": 20,
+            "y": 54,
+            "w": 20,
+            "h": 16,
+            "state": {
+              "params": {
+                "pdf_name": [
+                  "Sample"
+                ]
+              }
+            },
+            "groups": []
+          },
+          {
+            "i": "sample_newsfeed",
+            "x": 0,
+            "y": 15,
+            "w": 40,
+            "h": 8,
+            "groups": []
           }
         ]
       },
@@ -125,42 +144,48 @@
             "x": 20,
             "y": 7,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_refetch_interval_and_shorter_stale_time",
             "x": 0,
             "y": 7,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_short_refetch_interval",
             "x": 20,
             "y": 2,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_short_refetch_interval_and_run_button",
             "x": 0,
             "y": 12,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_stale_time",
             "x": 0,
             "y": 2,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "/vendor1/markdown_widget_with_better_structured_api",
             "x": 20,
             "y": 12,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           }
         ]
       },
@@ -173,56 +198,64 @@
             "x": 0,
             "y": 2,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_date_picker",
             "x": 20,
             "y": 2,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_dropdown",
             "x": 0,
             "y": 7,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_multi_select_advanced_dropdown",
             "x": 20,
             "y": 12,
             "w": 20,
-            "h": 6
+            "h": 6,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_number_input",
             "x": 20,
             "y": 7,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_text_input",
             "x": 0,
             "y": 12,
             "w": 20,
-            "h": 6
+            "h": 6,
+            "groups": []
           },
           {
             "i": "markdown_widget_with_editable_text_input",
             "x": 0,
             "y": 18,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "dropdown_dependent_widget",
             "x": 20,
             "y": 18,
             "w": 20,
-            "h": 5
+            "h": 5,
+            "groups": []
           },
           {
             "i": "table_widget_with_grouping_by_cell_click",
@@ -256,7 +289,10 @@
                   }
                 }
               }
-            }
+            },
+            "groups": [
+              "Group 3"
+            ]
           },
           {
             "i": "widget_managed_by_parameter_from_cell_click_on_table_widget",
@@ -268,7 +304,10 @@
               "params": {
                 "symbol": "AMZN"
               }
-            }
+            },
+            "groups": [
+              "Group 3"
+            ]
           },
           {
             "i": "company_performance",
@@ -292,14 +331,22 @@
                   }
                 }
               }
-            }
+            },
+            "groups": [
+              "Group 1",
+              "Group 2"
+            ]
           },
           {
             "i": "company_details",
             "x": 20,
             "y": 23,
             "w": 20,
-            "h": 8
+            "h": 8,
+            "groups": [
+              "Group 1",
+              "Group 2"
+            ]
           },
           {
             "i": "markdown_widget_with_organized_params",
@@ -311,7 +358,8 @@
               "params": {
                 "enable_feature": "true"
               }
-            }
+            },
+            "groups": []
           }
         ]
       },
@@ -340,7 +388,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "table_widget_with_render_functions",
@@ -363,7 +412,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "table_widget_with_column_definitions",
@@ -391,7 +441,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "table_to_chart_widget",
@@ -403,86 +454,15 @@
               "chartModel": {
                 "modelType": "range",
                 "chartType": "column",
-                "chartOptions": {
-                  "common": {
-                    "axes": {
-                      "category": {
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "minSpacing": 5,
-                          "autoRotate": true
-                        },
-                        "position": "bottom"
-                      },
-                      "radius-category": {
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "minSpacing": 5
-                        }
-                      },
-                      "angle-category": {
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "minSpacing": 5
-                        }
-                      },
-                      "grouped-category": {
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "minSpacing": 5
-                        }
-                      },
-                      "number": {
-                        "position": "left",
-                        "crosshair": {
-                          "label": {}
-                        },
-                        "label": {
-                          "fontSize": 11,
-                          "autoRotate": false,
-                          "avoidCollisions": true
-                        }
-                      },
-                      "time": {
-                        "position": "bottom",
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "rotation": 0
-                        }
-                      }
-                    },
-                    "legend": {
-                      "position": "top",
-                      "maxHeight": 50,
-                      "spacing": 20,
-                      "item": {
-                        "paddingX": 32,
-                        "paddingY": 8,
-                        "marker": {
-                          "shape": "square",
-                          "padding": 5,
-                          "size": 11
-                        },
-                        "label": {
-                          "color": "#fff",
-                          "fontSize": 11
-                        }
-                      }
-                    }
-                  }
-                },
+                "chartOptions": {},
                 "suppressChartRanges": true
               },
               "chartView": {
                 "enabled": true,
                 "chartType": "column"
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "table_to_time_series_widget",
@@ -494,86 +474,15 @@
               "chartModel": {
                 "modelType": "range",
                 "chartType": "line",
-                "chartOptions": {
-                  "common": {
-                    "axes": {
-                      "category": {
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "minSpacing": 5,
-                          "autoRotate": true
-                        },
-                        "position": "bottom"
-                      },
-                      "radius-category": {
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "minSpacing": 5
-                        }
-                      },
-                      "angle-category": {
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "minSpacing": 5
-                        }
-                      },
-                      "grouped-category": {
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "minSpacing": 5
-                        }
-                      },
-                      "number": {
-                        "position": "left",
-                        "crosshair": {
-                          "label": {}
-                        },
-                        "label": {
-                          "fontSize": 11,
-                          "autoRotate": false,
-                          "avoidCollisions": true
-                        }
-                      },
-                      "time": {
-                        "position": "bottom",
-                        "label": {
-                          "avoidCollisions": true,
-                          "fontSize": 11,
-                          "rotation": 0
-                        }
-                      }
-                    },
-                    "legend": {
-                      "position": "top",
-                      "maxHeight": 50,
-                      "spacing": 20,
-                      "item": {
-                        "paddingX": 32,
-                        "paddingY": 8,
-                        "marker": {
-                          "shape": "square",
-                          "padding": 5,
-                          "size": 11
-                        },
-                        "label": {
-                          "color": "#fff",
-                          "fontSize": 11
-                        }
-                      }
-                    }
-                  }
-                },
+                "chartOptions": {},
                 "suppressChartRanges": true
               },
               "chartView": {
                 "enabled": true,
                 "chartType": "line"
               }
-            }
+            },
+            "groups": []
           }
         ]
       },
@@ -586,28 +495,32 @@
             "x": 0,
             "y": 2,
             "w": 40,
-            "h": 15
+            "h": 15,
+            "groups": []
           },
           {
             "i": "plotly_chart_with_theme",
             "x": 0,
             "y": 17,
             "w": 40,
-            "h": 15
+            "h": 15,
+            "groups": []
           },
           {
             "i": "plotly_chart_with_theme_and_toolbar",
             "x": 0,
             "y": 32,
             "w": 40,
-            "h": 15
+            "h": 15,
+            "groups": []
           },
           {
             "i": "plotly_chart_with_theme_and_toolbar_using_config_file",
             "x": 0,
             "y": 47,
             "w": 40,
-            "h": 15
+            "h": 15,
+            "groups": []
           },
           {
             "i": "plotly_heatmap",
@@ -617,9 +530,23 @@
             "h": 15,
             "state": {
               "params": {
-                "color_scale": "Blues"
+                "color_scale": "Inferno"
               }
-            }
+            },
+            "groups": []
+          },
+          {
+            "i": "plotly_heatmap_with_raw_data",
+            "x": 0,
+            "y": 77,
+            "w": 40,
+            "h": 15,
+            "state": {
+              "params": {
+                "color_scale": "Plasma"
+              }
+            },
+            "groups": []
           }
         ]
       },
@@ -647,7 +574,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           }
         ]
       },
@@ -660,7 +588,8 @@
             "x": 0,
             "y": 2,
             "w": 40,
-            "h": 21
+            "h": 21,
+            "groups": []
           }
         ]
       },
@@ -679,7 +608,8 @@
                 "prompt": "Hello World",
                 "type": "markdown"
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "omni-widget-with-citations",
@@ -693,7 +623,8 @@
                 "type": "chart",
                 "include_metadata": "false"
               }
-            }
+            },
+            "groups": []
           }
         ]
       },
@@ -727,7 +658,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "sparkline-bar",
@@ -753,7 +685,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "sparkline-line",
@@ -779,7 +712,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "sparkline-column",
@@ -805,7 +739,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           },
           {
             "i": "sparkline-area",
@@ -831,7 +766,8 @@
                   }
                 }
               }
-            }
+            },
+            "groups": []
           }
         ]
       }
@@ -841,31 +777,19 @@
         "name": "Group 1",
         "type": "endpointParam",
         "paramName": "company",
-        "defaultValue": "TM",
-        "widgetIds": [
-          "company_performance",
-          "company_details"
-        ]
+        "defaultValue": "TM"
       },
       {
         "name": "Group 2",
         "type": "param",
         "paramName": "year",
-        "defaultValue": "2024",
-        "widgetIds": [
-          "company_performance",
-          "company_details"
-        ]
+        "defaultValue": "2024"
       },
       {
         "name": "Group 3",
         "type": "endpointParam",
         "paramName": "symbol",
-        "defaultValue": "AMZN",
-        "widgetIds": [
-          "table_widget_with_grouping_by_cell_click",
-          "widget_managed_by_parameter_from_cell_click_on_table_widget"
-        ]
+        "defaultValue": "AMZN"
       }
     ]
   }

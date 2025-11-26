@@ -12,9 +12,45 @@ from plotly_config import get_theme_colors, base_layout, get_toolbar_config
 import random
 from pydantic import BaseModel, Field
 from uuid import UUID
-from typing import Any, List, Literal, List
+from typing import Any, List, Literal, List, Union
 from functools import wraps
 import asyncio
+
+
+# Pydantic models for multi-file viewer POST endpoints
+class FileOption(BaseModel):
+    """File option for multi-file viewer selection"""
+    label: str
+    value: str
+
+
+class FileRequest(BaseModel):
+    """Request model for multi-file viewer POST endpoints"""
+    filenames: List[str]
+
+
+class FileDataFormat(BaseModel):
+    """Data format specification for files"""
+    data_type: str
+    filename: str
+
+
+class DataContent(BaseModel):
+    """Response model for file content in base64 format"""
+    content: str
+    data_format: FileDataFormat
+
+
+class DataUrl(BaseModel):
+    """Response model for file URL"""
+    url: str
+    data_format: FileDataFormat
+
+
+class DataError(BaseModel):
+    """Error response model for file requests"""
+    error_type: str
+    content: str
 
 
 # Initialize FastAPI application with metadata
@@ -1213,20 +1249,18 @@ SAMPLE_PDFS = [
 # and return it in the JSON format. The reason why we need this endpoint is because the multi_file_viewer widget
 # needs to know the list of available PDFs to display and we pass this endpoint to the widget as the optionsEndpoint
 @app.get("/get_pdf_options")
-async def get_pdf_options():
+async def get_pdf_options() -> List[FileOption]:
     """Get list of available PDFs"""
     return [
-        {
-            "label": pdf["name"],
-            "value": pdf["name"]
-        } for pdf in SAMPLE_PDFS
+        FileOption(label=pdf["name"], value=pdf["name"]) 
+        for pdf in SAMPLE_PDFS
     ]
 
 @register_widget({
     "name": "Multi PDF Viewer - Base64",
     "description": "View multiple PDF files using base64 encoding",
     "type": "multi_file_viewer",
-    "endpoint": "multi_pdf_base64",
+    "endpoint": "/multi_pdf_base64",
     "gridData": {
         "w": 20,
         "h": 10
@@ -1245,36 +1279,55 @@ async def get_pdf_options():
         }
     ]
 })
-@app.get("/multi_pdf_base64")
-async def get_multi_pdf_base64(pdf_name: str):
-    """Get PDF content in base64 format"""
-    pdf = next((p for p in SAMPLE_PDFS if p["name"] == pdf_name), None)
-    if not pdf:
-        raise HTTPException(status_code=404, detail="PDF not found")
+@app.post("/multi_pdf_base64")
+async def get_multi_pdf_base64(
+    pdf_name: List[str] = Body(..., embed=True)
+) -> List[Union[DataContent, DataError]]:
+    """Get multiple PDF files in base64 format"""
+    files = []
+    for name in pdf_name:
+        pdf = next((p for p in SAMPLE_PDFS if p["name"] == name), None)
+        if not pdf:
+            files.append(
+                DataError(
+                    error_type="not_found", 
+                    content=f"PDF '{name}' not found"
+                ).model_dump()
+            )
+            continue
 
-    file_path = ROOT_PATH / pdf["location"]
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="PDF file not found")
+        file_path = ROOT_PATH / pdf["location"]
+        if not file_path.exists():
+            files.append(
+                DataError(
+                    error_type="not_found",
+                    content=f"PDF file '{pdf['location']}' not found on disk"
+                ).model_dump()
+            )
+            continue
 
-    with open(file_path, "rb") as file:
-        base64_content = base64.b64encode(file.read()).decode("utf-8")
+        with open(file_path, "rb") as file:
+            base64_content = base64.b64encode(file.read()).decode("utf-8")
+            files.append(
+                DataContent(
+                    content=base64_content,
+                    data_format=FileDataFormat(
+                        data_type="pdf",
+                        filename=f"{pdf['name']}.pdf"
+                    )
+                ).model_dump()
+            )
 
     return JSONResponse(
         headers={"Content-Type": "application/json"},
-        content={
-            "data_format": {
-                "data_type": "pdf",
-                "filename": f"{pdf['name']}.pdf"
-            },
-            "content": base64_content,
-        },
+        content=files
     )
 
 @register_widget({
     "name": "Multi PDF Viewer - URL",
     "description": "View multiple PDF files using URLs",
     "type": "multi_file_viewer", 
-    "endpoint": "multi_pdf_url",
+    "endpoint": "/multi_pdf_url",
     "gridData": {
         "w": 20,
         "h": 10
@@ -1293,19 +1346,44 @@ async def get_multi_pdf_base64(pdf_name: str):
         }
     ]
 })
-@app.get("/multi_pdf_url")
-async def get_multi_pdf_url(pdf_name: str):
-    """Get PDF URL"""
-    pdf = next((p for p in SAMPLE_PDFS if p["name"] == pdf_name), None)
-    if not pdf:
-        raise HTTPException(status_code=404, detail="PDF not found")
+@app.post("/multi_pdf_url")
+async def get_multi_pdf_url(
+    pdf_name: List[str] = Body(..., embed=True)
+) -> List[Union[DataUrl, DataError]]:
+    """Get multiple PDF files via URLs"""
+    files = []
+    for name in pdf_name:
+        pdf = next((p for p in SAMPLE_PDFS if p["name"] == name), None)
+        if not pdf:
+            files.append(
+                DataError(
+                    error_type="not_found",
+                    content=f"PDF '{name}' not found"
+                ).model_dump()
+            )
+            continue
+
+        if url := pdf.get("url"):
+            files.append(
+                DataUrl(
+                    url=url,
+                    data_format=FileDataFormat(
+                        data_type="pdf",
+                        filename=f"{pdf['name']}.pdf"
+                    )
+                ).model_dump()
+            )
+        else:
+            files.append(
+                DataError(
+                    error_type="not_found",
+                    content=f"URL not found for '{name}'"
+                ).model_dump()
+            )
 
     return JSONResponse(
         headers={"Content-Type": "application/json"},
-        content={
-            "data_format": {"data_type": "pdf", "filename": f"{pdf['name']}.pdf"},
-            "url": pdf["url"],
-        },
+        content=files
     )
 
 # This is a simple markdown widget with a date picker parameter
@@ -2803,6 +2881,111 @@ def get_plotly_heatmap(color_scale: str = "RdBu_r", theme: str = "dark"):
 
     return figure_json
 
+
+# Plotly heatmap with raw data
+# This widget demonstrates that you can also provide raw data alongside
+# a plotly chart, where the raw data is rendered via AgGrid and the
+# AI copilot can query it for better results.
+@register_widget({
+    "name": "Plotly Heatmap with Raw Data",
+    "description": "Plotly heatmap with raw data",
+    "type": "chart",
+    "endpoint": "plotly_heatmap_with_raw_data",
+    "gridData": {"w": 40, "h": 15},
+    "raw": True,
+    "params": [
+        {
+            "paramName": "color_scale",
+            "description": "Select the color scale for the heatmap",
+            "value": "RdBu_r",
+            "label": "Color Scale",
+            "type": "text",
+            "show": True,
+            "options": [
+                {"label": "Red-Blue (RdBu_r)", "value": "RdBu_r"},
+                {"label": "Viridis", "value": "Viridis"},
+                {"label": "Plasma", "value": "Plasma"},
+                {"label": "Inferno", "value": "Inferno"},
+                {"label": "Magma", "value": "Magma"},
+                {"label": "Greens", "value": "Greens"},
+                {"label": "Blues", "value": "Blues"},
+                {"label": "Reds", "value": "Reds"}
+            ]
+        }
+    ]
+})
+@app.get("/plotly_heatmap_with_raw_data")
+def get_plotly_heatmap(color_scale: str = "RdBu_r", raw: bool = False, theme: str = "dark"):
+    # Create mock stock symbols
+    symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
+
+    # Create mock correlation matrix directly
+    corr_matrix = [
+        [1.00, 0.65, 0.45, 0.30, 0.20],  # AAPL correlations
+        [0.65, 1.00, 0.55, 0.40, 0.25],  # MSFT correlations
+        [0.45, 0.55, 1.00, 0.35, 0.15],  # GOOGL correlations
+        [0.30, 0.40, 0.35, 1.00, 0.10],  # AMZN correlations
+        [0.20, 0.25, 0.15, 0.10, 1.00]   # TSLA correlations
+    ]
+
+    # If raw is True, return the data as a list of dictionaries
+    # This is useful when you want to make sure the AI can see the data
+    if raw:
+        data = []
+        for i, symbol1 in enumerate(symbols):
+            for j, symbol2 in enumerate(symbols):
+                data.append({
+                    "symbol1": symbol1,
+                    "symbol2": symbol2,
+                    "correlation": corr_matrix[i][j]
+                })
+        return data
+
+    # Get theme colors
+    colors = get_theme_colors(theme)
+
+    # Create the figure
+    fig = go.Figure()
+    # Apply base layout configuration
+    layout_config = base_layout(theme=theme)
+
+    # This allows users to modify the layout configuration further
+    # in case they want to steer from the default settings.
+    layout_config['title'] = {
+        'text': "Correlation Matrix",
+        'x': 0.5,
+        'y': 0.95,
+        'xanchor': 'center',
+        'yanchor': 'top',
+        'font': {'size': 20}
+    }
+    layout_config['margin'] = {'t': 50, 'b': 50, 'l': 50, 'r': 50}
+    
+    # Update figure with complete layout
+    fig.update_layout(layout_config)
+
+    # Add the heatmap trace
+    fig.add_trace(go.Heatmap(
+        z=corr_matrix,
+        x=symbols,
+        y=symbols,
+        colorscale=color_scale,
+        zmid=colors["heatmap"]["zmid"],
+        text=[[f'{val:.2f}' for val in row] for row in corr_matrix],
+        texttemplate='%{text}',
+        textfont={"color": colors["heatmap"]["text_color"]},
+        hoverongaps=False,
+        hovertemplate='%{x} - %{y}<br>Correlation: %{z:.2f}<extra></extra>'
+    ))
+    
+    # Convert figure to JSON and apply config
+    figure_json = json.loads(fig.to_json())
+    figure_json['config'] = {
+        **get_toolbar_config(),
+        'scrollZoom': False  # Disable scroll zoom
+    }
+
+    return figure_json
 
 # Global variable to store form submissions
 # This acts as a simple in-memory database for our form entries
@@ -4776,3 +4959,189 @@ def table_widget_custom_formatter():
         }
     ]
     return mock_data
+
+
+@register_widget({
+    "name": "Sample News Feed",
+    "description": "A simple newsfeed widget with example articles",
+    "type": "newsfeed",
+    "endpoint": "sample_newsfeed",
+    "gridData": {
+        "w": 40,
+        "h": 20
+    },
+    "source": "example",
+    "params": [
+        {
+            "paramName": "category",
+            "label": "Category",
+            "description": "Filter news by category",
+            "type": "text",
+            "value": "all",
+            "options": [
+                {"label": "All", "value": "all"},
+                {"label": "Technology", "value": "tech"},
+                {"label": "Business", "value": "business"},
+                {"label": "Science", "value": "science"}
+            ]
+        },
+        {
+            "paramName": "limit",
+            "label": "Number of Articles",
+            "description": "Maximum number of articles to display",
+            "type": "number",
+            "value": "5"
+        }
+    ]
+})
+@app.get("/sample_newsfeed")
+def get_sample_newsfeed(category: str = "all", limit: int = 5):
+    """Returns sample news articles in the required newsfeed format"""
+    
+    # Sample news data organized by category
+    sample_articles = {
+        "tech": [
+            {
+                "title": "AI Breakthrough: New Model Achieves Human-Level Reasoning",
+                "date": (datetime.now() - timedelta(hours=2)).isoformat(),
+                "author": "Sarah Johnson",
+                "excerpt": "Researchers at TechLab have unveiled a groundbreaking AI model that demonstrates unprecedented reasoning capabilities...",
+                "body": """# AI Breakthrough: New Model Achieves Human-Level Reasoning
+
+Researchers at TechLab have unveiled a groundbreaking AI model that demonstrates unprecedented reasoning capabilities, marking a significant milestone in artificial intelligence development.
+
+## Key Features
+- **Advanced reasoning**: The model can solve complex logical problems
+- **Multimodal understanding**: Processes text, images, and audio simultaneously
+- **Energy efficient**: Uses 40% less computational resources than previous models
+
+The implications of this breakthrough extend across multiple industries, from healthcare to education, promising to revolutionize how we interact with AI systems."""
+            },
+            {
+                "title": "Quantum Computing Startup Raises $500M in Series C Funding",
+                "date": (datetime.now() - timedelta(hours=5)).isoformat(),
+                "author": "Michael Chen",
+                "excerpt": "QuantumLeap Technologies secures major funding round to accelerate development of commercial quantum processors...",
+                "body": """# Quantum Computing Startup Raises $500M in Series C Funding
+
+QuantumLeap Technologies announced today that it has secured $500 million in Series C funding, led by prominent venture capital firms.
+
+The company plans to use the funding to:
+1. Scale manufacturing capabilities
+2. Expand research team by 200 engineers
+3. Develop partnerships with major cloud providers
+
+CEO Jane Smith stated, "This investment validates our approach to making quantum computing accessible to enterprises worldwide." """
+            }
+        ],
+        "business": [
+            {
+                "title": "Global Markets Rally on Positive Economic Data",
+                "date": (datetime.now() - timedelta(hours=1)).isoformat(),
+                "author": "Robert Williams",
+                "excerpt": "Stock markets across the globe surged today following the release of better-than-expected employment figures...",
+                "body": """# Global Markets Rally on Positive Economic Data
+
+Stock markets worldwide experienced significant gains today as investors responded positively to robust employment data and inflation reports.
+
+## Market Performance
+- S&P 500: +2.3%
+- NASDAQ: +2.8%
+- FTSE 100: +1.9%
+- Nikkei 225: +2.1%
+
+Analysts attribute the rally to renewed confidence in economic recovery and expectations of stable monetary policy."""
+            },
+            {
+                "title": "E-commerce Giant Announces Major Expansion into Southeast Asia",
+                "date": (datetime.now() - timedelta(hours=4)).isoformat(),
+                "author": "Lisa Anderson",
+                "excerpt": "MegaShop reveals plans to invest $2 billion in Southeast Asian operations over the next three years...",
+                "body": """# E-commerce Giant Announces Major Expansion into Southeast Asia
+
+MegaShop, the leading e-commerce platform, today unveiled ambitious plans to expand its presence across Southeast Asia with a $2 billion investment.
+
+The expansion includes:
+- New fulfillment centers in 5 countries
+- Partnership with 10,000 local merchants
+- Same-day delivery in major metropolitan areas
+
+This strategic move positions the company to capture the rapidly growing digital commerce market in the region."""
+            }
+        ],
+        "science": [
+            {
+                "title": "Scientists Discover New Earth-like Exoplanet in Habitable Zone",
+                "date": (datetime.now() - timedelta(hours=3)).isoformat(),
+                "author": "Dr. Emily Rogers",
+                "excerpt": "Astronomers using the James Webb Space Telescope have identified a potentially habitable exoplanet just 40 light-years away...",
+                "body": """# Scientists Discover New Earth-like Exoplanet in Habitable Zone
+
+A team of international astronomers has announced the discovery of an Earth-like exoplanet orbiting within the habitable zone of its star system.
+
+## Planet Characteristics
+- **Size**: 1.2 times Earth's radius
+- **Orbital period**: 385 days
+- **Surface temperature**: Estimated 15°C average
+- **Atmosphere**: Preliminary data suggests presence of water vapor
+
+The discovery opens new possibilities for studying potentially habitable worlds beyond our solar system."""
+            },
+            {
+                "title": "Breakthrough in Cancer Treatment: New Immunotherapy Shows Promise",
+                "date": (datetime.now() - timedelta(hours=6)).isoformat(),
+                "author": "Dr. James Martinez",
+                "excerpt": "Clinical trials reveal remarkable success rates for novel immunotherapy approach in treating aggressive cancers...",
+                "body": """# Breakthrough in Cancer Treatment: New Immunotherapy Shows Promise
+
+Researchers at the National Cancer Institute have reported extraordinary results from Phase II clinical trials of a new immunotherapy treatment.
+
+## Trial Results
+- 78% response rate in patients with advanced melanoma
+- 65% showed tumor reduction within 3 months
+- Minimal side effects compared to traditional chemotherapy
+
+Dr. Sarah Lee, lead researcher, commented: "These results exceed our most optimistic expectations and could transform cancer treatment protocols." """
+            }
+        ]
+    }
+    
+    # Collect articles based on category
+    if category == "all":
+        # Combine all categories
+        all_articles = []
+        for cat_articles in sample_articles.values():
+            all_articles.extend(cat_articles)
+        articles = all_articles
+    else:
+        # Get specific category or empty list if category doesn't exist
+        articles = sample_articles.get(category, [])
+    
+    # Sort by date (newest first) and limit results
+    articles.sort(key=lambda x: x["date"], reverse=True)
+    articles = articles[:limit]
+    
+    # Add some variety with random additional recent articles if needed
+    if len(articles) < limit and category == "all":
+        # Generate some generic filler articles
+        for i in range(limit - len(articles)):
+            articles.append({
+                "title": f"Breaking News: Important Update #{i+1}",
+                "date": (datetime.now() - timedelta(hours=8+i)).isoformat(),
+                "author": "News Team",
+                "excerpt": f"This is a sample news article demonstrating the newsfeed widget functionality...",
+                "body": f"""# Breaking News: Important Update #{i+1}
+
+This is a sample article created to demonstrate the newsfeed widget's ability to display multiple articles.
+
+## Summary
+The newsfeed widget can display articles with:
+- Rich markdown formatting
+- Timestamps and author information
+- Excerpts for quick preview
+- Full article body with detailed content
+
+Stay tuned for more updates!"""
+            })
+    
+    return articles
