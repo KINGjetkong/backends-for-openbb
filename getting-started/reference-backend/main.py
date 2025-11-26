@@ -4854,3 +4854,189 @@ def table_widget_custom_formatter():
         }
     ]
     return mock_data
+
+
+@register_widget({
+    "name": "Sample News Feed",
+    "description": "A simple newsfeed widget with example articles",
+    "type": "newsfeed",
+    "endpoint": "sample_newsfeed",
+    "gridData": {
+        "w": 40,
+        "h": 20
+    },
+    "source": "example",
+    "params": [
+        {
+            "paramName": "category",
+            "label": "Category",
+            "description": "Filter news by category",
+            "type": "text",
+            "value": "all",
+            "options": [
+                {"label": "All", "value": "all"},
+                {"label": "Technology", "value": "tech"},
+                {"label": "Business", "value": "business"},
+                {"label": "Science", "value": "science"}
+            ]
+        },
+        {
+            "paramName": "limit",
+            "label": "Number of Articles",
+            "description": "Maximum number of articles to display",
+            "type": "number",
+            "value": "5"
+        }
+    ]
+})
+@app.get("/sample_newsfeed")
+def get_sample_newsfeed(category: str = "all", limit: int = 5):
+    """Returns sample news articles in the required newsfeed format"""
+    
+    # Sample news data organized by category
+    sample_articles = {
+        "tech": [
+            {
+                "title": "AI Breakthrough: New Model Achieves Human-Level Reasoning",
+                "date": (datetime.now() - timedelta(hours=2)).isoformat(),
+                "author": "Sarah Johnson",
+                "excerpt": "Researchers at TechLab have unveiled a groundbreaking AI model that demonstrates unprecedented reasoning capabilities...",
+                "body": """# AI Breakthrough: New Model Achieves Human-Level Reasoning
+
+Researchers at TechLab have unveiled a groundbreaking AI model that demonstrates unprecedented reasoning capabilities, marking a significant milestone in artificial intelligence development.
+
+## Key Features
+- **Advanced reasoning**: The model can solve complex logical problems
+- **Multimodal understanding**: Processes text, images, and audio simultaneously
+- **Energy efficient**: Uses 40% less computational resources than previous models
+
+The implications of this breakthrough extend across multiple industries, from healthcare to education, promising to revolutionize how we interact with AI systems."""
+            },
+            {
+                "title": "Quantum Computing Startup Raises $500M in Series C Funding",
+                "date": (datetime.now() - timedelta(hours=5)).isoformat(),
+                "author": "Michael Chen",
+                "excerpt": "QuantumLeap Technologies secures major funding round to accelerate development of commercial quantum processors...",
+                "body": """# Quantum Computing Startup Raises $500M in Series C Funding
+
+QuantumLeap Technologies announced today that it has secured $500 million in Series C funding, led by prominent venture capital firms.
+
+The company plans to use the funding to:
+1. Scale manufacturing capabilities
+2. Expand research team by 200 engineers
+3. Develop partnerships with major cloud providers
+
+CEO Jane Smith stated, "This investment validates our approach to making quantum computing accessible to enterprises worldwide." """
+            }
+        ],
+        "business": [
+            {
+                "title": "Global Markets Rally on Positive Economic Data",
+                "date": (datetime.now() - timedelta(hours=1)).isoformat(),
+                "author": "Robert Williams",
+                "excerpt": "Stock markets across the globe surged today following the release of better-than-expected employment figures...",
+                "body": """# Global Markets Rally on Positive Economic Data
+
+Stock markets worldwide experienced significant gains today as investors responded positively to robust employment data and inflation reports.
+
+## Market Performance
+- S&P 500: +2.3%
+- NASDAQ: +2.8%
+- FTSE 100: +1.9%
+- Nikkei 225: +2.1%
+
+Analysts attribute the rally to renewed confidence in economic recovery and expectations of stable monetary policy."""
+            },
+            {
+                "title": "E-commerce Giant Announces Major Expansion into Southeast Asia",
+                "date": (datetime.now() - timedelta(hours=4)).isoformat(),
+                "author": "Lisa Anderson",
+                "excerpt": "MegaShop reveals plans to invest $2 billion in Southeast Asian operations over the next three years...",
+                "body": """# E-commerce Giant Announces Major Expansion into Southeast Asia
+
+MegaShop, the leading e-commerce platform, today unveiled ambitious plans to expand its presence across Southeast Asia with a $2 billion investment.
+
+The expansion includes:
+- New fulfillment centers in 5 countries
+- Partnership with 10,000 local merchants
+- Same-day delivery in major metropolitan areas
+
+This strategic move positions the company to capture the rapidly growing digital commerce market in the region."""
+            }
+        ],
+        "science": [
+            {
+                "title": "Scientists Discover New Earth-like Exoplanet in Habitable Zone",
+                "date": (datetime.now() - timedelta(hours=3)).isoformat(),
+                "author": "Dr. Emily Rogers",
+                "excerpt": "Astronomers using the James Webb Space Telescope have identified a potentially habitable exoplanet just 40 light-years away...",
+                "body": """# Scientists Discover New Earth-like Exoplanet in Habitable Zone
+
+A team of international astronomers has announced the discovery of an Earth-like exoplanet orbiting within the habitable zone of its star system.
+
+## Planet Characteristics
+- **Size**: 1.2 times Earth's radius
+- **Orbital period**: 385 days
+- **Surface temperature**: Estimated 15°C average
+- **Atmosphere**: Preliminary data suggests presence of water vapor
+
+The discovery opens new possibilities for studying potentially habitable worlds beyond our solar system."""
+            },
+            {
+                "title": "Breakthrough in Cancer Treatment: New Immunotherapy Shows Promise",
+                "date": (datetime.now() - timedelta(hours=6)).isoformat(),
+                "author": "Dr. James Martinez",
+                "excerpt": "Clinical trials reveal remarkable success rates for novel immunotherapy approach in treating aggressive cancers...",
+                "body": """# Breakthrough in Cancer Treatment: New Immunotherapy Shows Promise
+
+Researchers at the National Cancer Institute have reported extraordinary results from Phase II clinical trials of a new immunotherapy treatment.
+
+## Trial Results
+- 78% response rate in patients with advanced melanoma
+- 65% showed tumor reduction within 3 months
+- Minimal side effects compared to traditional chemotherapy
+
+Dr. Sarah Lee, lead researcher, commented: "These results exceed our most optimistic expectations and could transform cancer treatment protocols." """
+            }
+        ]
+    }
+    
+    # Collect articles based on category
+    if category == "all":
+        # Combine all categories
+        all_articles = []
+        for cat_articles in sample_articles.values():
+            all_articles.extend(cat_articles)
+        articles = all_articles
+    else:
+        # Get specific category or empty list if category doesn't exist
+        articles = sample_articles.get(category, [])
+    
+    # Sort by date (newest first) and limit results
+    articles.sort(key=lambda x: x["date"], reverse=True)
+    articles = articles[:limit]
+    
+    # Add some variety with random additional recent articles if needed
+    if len(articles) < limit and category == "all":
+        # Generate some generic filler articles
+        for i in range(limit - len(articles)):
+            articles.append({
+                "title": f"Breaking News: Important Update #{i+1}",
+                "date": (datetime.now() - timedelta(hours=8+i)).isoformat(),
+                "author": "News Team",
+                "excerpt": f"This is a sample news article demonstrating the newsfeed widget functionality...",
+                "body": f"""# Breaking News: Important Update #{i+1}
+
+This is a sample article created to demonstrate the newsfeed widget's ability to display multiple articles.
+
+## Summary
+The newsfeed widget can display articles with:
+- Rich markdown formatting
+- Timestamps and author information
+- Excerpts for quick preview
+- Full article body with detailed content
+
+Stay tuned for more updates!"""
+            })
+    
+    return articles
