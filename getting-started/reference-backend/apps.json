@@ -38,7 +38,7 @@
           {
             "i": "pdf_widget_base64",
             "x": 0,
-            "y": 31,
+            "y": 39,
             "w": 20,
             "h": 15,
             "groups": []
@@ -46,7 +46,7 @@
           {
             "i": "pdf_widget_url",
             "x": 0,
-            "y": 46,
+            "y": 54,
             "w": 20,
             "h": 16,
             "groups": []
@@ -82,7 +82,7 @@
           {
             "i": "markdown_widget_with_local_image",
             "x": 0,
-            "y": 15,
+            "y": 23,
             "w": 20,
             "h": 16,
             "groups": []
@@ -90,7 +90,7 @@
           {
             "i": "markdown_widget_with_image_from_url",
             "x": 20,
-            "y": 15,
+            "y": 23,
             "w": 20,
             "h": 16,
             "groups": []
@@ -98,7 +98,7 @@
           {
             "i": "/multi_pdf_base64",
             "x": 20,
-            "y": 31,
+            "y": 39,
             "w": 20,
             "h": 15,
             "state": {
@@ -113,9 +113,24 @@
           {
             "i": "/multi_pdf_url",
             "x": 20,
-            "y": 46,
+            "y": 54,
             "w": 20,
             "h": 16,
+            "state": {
+              "params": {
+                "pdf_name": [
+                  "Sample"
+                ]
+              }
+            },
+            "groups": []
+          },
+          {
+            "i": "sample_newsfeed",
+            "x": 0,
+            "y": 15,
+            "w": 40,
+            "h": 8,
             "groups": []
           }
         ]
@@ -515,7 +530,20 @@
             "h": 15,
             "state": {
               "params": {
-                "color_scale": "Blues"
+                "color_scale": "Inferno"
+              }
+            },
+            "groups": []
+          },
+          {
+            "i": "plotly_heatmap_with_raw_data",
+            "x": 0,
+            "y": 77,
+            "w": 40,
+            "h": 15,
+            "state": {
+              "params": {
+                "color_scale": "Plasma"
               }
             },
             "groups": []

@@ -2882,6 +2882,111 @@ def get_plotly_heatmap(color_scale: str = "RdBu_r", theme: str = "dark"):
     return figure_json
 
 
+# Plotly heatmap with raw data
+# This widget demonstrates that you can also provide raw data alongside
+# a plotly chart, where the raw data is rendered via AgGrid and the
+# AI copilot can query it for better results.
+@register_widget({
+    "name": "Plotly Heatmap with Raw Data",
+    "description": "Plotly heatmap with raw data",
+    "type": "chart",
+    "endpoint": "plotly_heatmap_with_raw_data",
+    "gridData": {"w": 40, "h": 15},
+    "raw": True,
+    "params": [
+        {
+            "paramName": "color_scale",
+            "description": "Select the color scale for the heatmap",
+            "value": "RdBu_r",
+            "label": "Color Scale",
+            "type": "text",
+            "show": True,
+            "options": [
+                {"label": "Red-Blue (RdBu_r)", "value": "RdBu_r"},
+                {"label": "Viridis", "value": "Viridis"},
+                {"label": "Plasma", "value": "Plasma"},
+                {"label": "Inferno", "value": "Inferno"},
+                {"label": "Magma", "value": "Magma"},
+                {"label": "Greens", "value": "Greens"},
+                {"label": "Blues", "value": "Blues"},
+                {"label": "Reds", "value": "Reds"}
+            ]
+        }
+    ]
+})
+@app.get("/plotly_heatmap_with_raw_data")
+def get_plotly_heatmap(color_scale: str = "RdBu_r", raw: bool = False, theme: str = "dark"):
+    # Create mock stock symbols
+    symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']
+
+    # Create mock correlation matrix directly
+    corr_matrix = [
+        [1.00, 0.65, 0.45, 0.30, 0.20],  # AAPL correlations
+        [0.65, 1.00, 0.55, 0.40, 0.25],  # MSFT correlations
+        [0.45, 0.55, 1.00, 0.35, 0.15],  # GOOGL correlations
+        [0.30, 0.40, 0.35, 1.00, 0.10],  # AMZN correlations
+        [0.20, 0.25, 0.15, 0.10, 1.00]   # TSLA correlations
+    ]
+
+    # If raw is True, return the data as a list of dictionaries
+    # This is useful when you want to make sure the AI can see the data
+    if raw:
+        data = []
+        for i, symbol1 in enumerate(symbols):
+            for j, symbol2 in enumerate(symbols):
+                data.append({
+                    "symbol1": symbol1,
+                    "symbol2": symbol2,
+                    "correlation": corr_matrix[i][j]
+                })
+        return data
+
+    # Get theme colors
+    colors = get_theme_colors(theme)
+
+    # Create the figure
+    fig = go.Figure()
+    # Apply base layout configuration
+    layout_config = base_layout(theme=theme)
+
+    # This allows users to modify the layout configuration further
+    # in case they want to steer from the default settings.
+    layout_config['title'] = {
+        'text': "Correlation Matrix",
+        'x': 0.5,
+        'y': 0.95,
+        'xanchor': 'center',
+        'yanchor': 'top',
+        'font': {'size': 20}
+    }
+    layout_config['margin'] = {'t': 50, 'b': 50, 'l': 50, 'r': 50}
+    
+    # Update figure with complete layout
+    fig.update_layout(layout_config)
+
+    # Add the heatmap trace
+    fig.add_trace(go.Heatmap(
+        z=corr_matrix,
+        x=symbols,
+        y=symbols,
+        colorscale=color_scale,
+        zmid=colors["heatmap"]["zmid"],
+        text=[[f'{val:.2f}' for val in row] for row in corr_matrix],
+        texttemplate='%{text}',
+        textfont={"color": colors["heatmap"]["text_color"]},
+        hoverongaps=False,
+        hovertemplate='%{x} - %{y}<br>Correlation: %{z:.2f}<extra></extra>'
+    ))
+    
+    # Convert figure to JSON and apply config
+    figure_json = json.loads(fig.to_json())
+    figure_json['config'] = {
+        **get_toolbar_config(),
+        'scrollZoom': False  # Disable scroll zoom
+    }
+
+    return figure_json
+
 # Global variable to store form submissions
 # This acts as a simple in-memory database for our form entries
 ALL_FORMS = []
