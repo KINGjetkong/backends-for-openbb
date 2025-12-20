@@ -5,7 +5,7 @@ import requests
 from pathlib import Path
 from fastapi import FastAPI, HTTPException, Body, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 from plotly_config import get_theme_colors, base_layout, get_toolbar_config
@@ -5145,3 +5145,95 @@ Stay tuned for more updates!"""
             })
     
     return articles
+
+# Sample YouTube videos data
+SAMPLE_VIDEOS = [
+    {
+        "name": "OpenBB Workspace Demo",
+        "url": "https://www.youtube.com/watch?v=uYyhswnZkSw",
+        "transcript": "# OpenBB Workspace Demo\n\nTranscript handled by the backend..."
+    },
+    {
+        "name": "Open Data Platform Demo",
+        "url": "https://www.youtube.com/watch?v=MSlhOFxEdxg",
+        "transcript": "# Open Data Platform Demo\n\nTranscript handled by the backend..."
+    }
+]
+
+# Sample video options endpoint
+# This endpoint returns the list of available videos for the dropdown selector
+@app.get("/get_video_options")
+async def get_video_options() -> List[FileOption]:
+    """Get list of available videos"""
+    return [
+        FileOption(label=video["name"], value=video["name"])
+        for video in SAMPLE_VIDEOS
+    ]
+
+# YouTube widget without transcript support
+# This widget only displays the video player
+@register_widget({
+    "name": "Video Library",
+    "description": "View YouTube videos",
+    "type": "youtube",
+    "endpoint": "/get_video",
+    "gridData": {"w": 20, "h": 12},
+    "params": [
+        {
+            "paramName": "video_name",
+            "description": "Video to display",
+            "type": "endpoint",
+            "label": "Video",
+            "optionsEndpoint": "/get_video_options",
+            "value": "OpenBB Workspace Demo",
+        }
+    ]
+})
+@app.get("/get_video")
+async def get_video(
+    video_name: str = Query("", description="Selected video"),
+):
+    """Get YouTube video URL"""
+    video = next((v for v in SAMPLE_VIDEOS if v["name"] == video_name), None)
+
+    if not video:
+        return PlainTextResponse(content="")
+
+    return PlainTextResponse(content=video["url"])
+
+# YouTube widget with transcript support
+# When raw=True is set in the widget config, the frontend will request ?raw=true
+# to get the transcript for AI context
+@register_widget({
+    "name": "Video Library with Transcript",
+    "description": "View YouTube videos with transcript support for AI",
+    "type": "youtube",
+    "endpoint": "/get_video_with_transcript",
+    "raw": True,
+    "gridData": {"w": 20, "h": 12},
+    "params": [
+        {
+            "paramName": "video_name",
+            "description": "Video to display",
+            "type": "endpoint",
+            "label": "Video",
+            "optionsEndpoint": "/get_video_options",
+            "value": "OpenBB Workspace Demo",
+        }
+    ]
+})
+@app.get("/get_video_with_transcript")
+async def get_video_with_transcript(
+    video_name: str = Query("", description="Selected video"),
+    raw: bool = Query(False, description="Return transcript instead of URL"),
+):
+    """Get YouTube video URL or transcript"""
+    video = next((v for v in SAMPLE_VIDEOS if v["name"] == video_name), None)
+
+    if not video:
+        return PlainTextResponse(content="*No video selected*" if raw else "")
+
+    if raw:
+        return PlainTextResponse(content=video["transcript"], media_type="text/markdown")
+
+    return PlainTextResponse(content=video["url"])
