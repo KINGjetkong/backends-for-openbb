@@ -1,0 +1,164 @@
+{
+  "tabs_dynamic_columns": {
+    "name": "[MOCK DATA] Tabs with Dynamic Columns",
+    "description": "Columns CHANGE when switching tabs. Each tab returns different metrics with random data. No columnsDefs defined - columns auto-generate from data.",
+    "category": "Tabs Examples",
+    "searchCategory": "Custom",
+    "endpoint": "financial_ratios_dynamic",
+    "gridData": {
+      "w": 45,
+      "h": 12
+    },
+    "params": [
+      {
+        "paramName": "category",
+        "type": "tabs",
+        "value": "liquidity",
+        "label": "Ratio Category",
+        "description": "Select the financial ratio category - each tab shows DIFFERENT columns",
+        "options": [
+          {
+            "label": "Liquidity",
+            "value": "liquidity"
+          },
+          {
+            "label": "Efficiency",
+            "value": "efficiency"
+          },
+          {
+            "label": "Profitability",
+            "value": "profitability"
+          },
+          {
+            "label": "Leverage",
+            "value": "leverage"
+          }
+        ]
+      }
+    ]
+  },
+  "tabs_static_columns": {
+    "name": "[MOCK DATA] Tabs with Static Columns",
+    "description": "Same columns for ALL tabs - only data values change. Uses fixed columnsDefs.",
+    "category": "Tabs Examples",
+    "searchCategory": "Custom",
+    "endpoint": "financial_ratios_static",
+    "gridData": {
+      "w": 40,
+      "h": 12
+    },
+    "params": [
+      {
+        "paramName": "category",
+        "type": "tabs",
+        "value": "liquidity",
+        "label": "Category",
+        "description": "Select category - columns stay the same, only values change",
+        "options": [
+          {
+            "label": "Liquidity",
+            "value": "liquidity"
+          },
+          {
+            "label": "Efficiency",
+            "value": "efficiency"
+          },
+          {
+            "label": "Profitability",
+            "value": "profitability"
+          },
+          {
+            "label": "Leverage",
+            "value": "leverage"
+          }
+        ]
+      }
+    ],
+    "data": {
+      "table": {
+        "columnsDefs": [
+          {
+            "field": "symbol",
+            "headerName": "Symbol",
+            "pinned": "left"
+          },
+          {
+            "field": "company",
+            "headerName": "Company"
+          },
+          {
+            "field": "category",
+            "headerName": "Selected Category"
+          },
+          {
+            "field": "metric_1",
+            "headerName": "Metric 1"
+          },
+          {
+            "field": "metric_2",
+            "headerName": "Metric 2"
+          },
+          {
+            "field": "metric_3",
+            "headerName": "Metric 3"
+          }
+        ]
+      }
+    }
+  },
+  "tabs_with_dropdown": {
+    "name": "[MOCK DATA] Tabs + Dropdown Combined",
+    "description": "Example showing tabs combined with a dropdown parameter. Tabs control the category (changes columns), dropdown controls the period.",
+    "category": "Tabs Examples",
+    "searchCategory": "Custom",
+    "endpoint": "comparison_with_period",
+    "gridData": {
+      "w": 50,
+      "h": 14
+    },
+    "params": [
+      {
+        "paramName": "period",
+        "type": "text",
+        "value": "annual",
+        "label": "Period",
+        "description": "Select the reporting period",
+        "options": [
+          {
+            "label": "Annual",
+            "value": "annual"
+          },
+          {
+            "label": "Quarterly",
+            "value": "quarterly"
+          }
+        ]
+      },
+      {
+        "paramName": "category",
+        "type": "tabs",
+        "value": "liquidity",
+        "label": "Category",
+        "description": "Select the financial ratio category - columns change per tab",
+        "options": [
+          {
+            "label": "Liquidity",
+            "value": "liquidity"
+          },
+          {
+            "label": "Efficiency",
+            "value": "efficiency"
+          },
+          {
+            "label": "Profitability",
+            "value": "profitability"
+          },
+          {
+            "label": "Leverage",
+            "value": "leverage"
+          }
+        ]
+      }
+    ]
+  }
+}
