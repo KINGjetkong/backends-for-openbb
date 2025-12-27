@@ -289,6 +289,82 @@ def markdown_widget_with_better_structured_api():
     """Returns a markdown widget with current time"""
     return "vendor1/markdown_widget_with_better_structured_api"
 
+
+# Markdown Widget with String and Int Parameters
+# This widget demonstrates how to use string and integer input parameters
+# with a run button for manual execution
+@register_widget({
+    "name": "Markdown Widget with String and Int Params",
+    "description": "A markdown widget with string and integer input parameters",
+    "type": "markdown",
+    "endpoint": "/vendor1/markdown_widget_with_str_and_int",
+    "gridData": {"w": 12, "h": 5},
+    "runButton": True,
+    "params": [
+        {
+            "paramName": "text_input",
+            "value": "hello",
+            "label": "Text Input",
+            "description": "Enter a string value",
+            "type": "text"
+        },
+        {
+            "paramName": "number_input",
+            "value": 42,
+            "label": "Number Input",
+            "description": "Enter an integer value",
+            "type": "number"
+        }
+    ]
+})
+@app.get("/vendor1/markdown_widget_with_str_and_int")
+def markdown_widget_with_str_and_int(text_input: str, number_input: int):
+    """Returns a markdown widget with string and int parameters"""
+    return f"""## String and Int Parameters
+
+**Text Input:** {text_input}
+
+**Number Input:** {number_input}
+
+**Combined:** {text_input} x {number_input}
+"""
+
+
+# Table Widget with String Parameter
+# This widget demonstrates a simple table with a string input parameter
+# and a run button for manual execution
+@register_widget({
+    "name": "Table Widget with String Param",
+    "description": "A table widget with a string input parameter",
+    "type": "table",
+    "endpoint": "/vendor1/table_widget_with_str_param",
+    "gridData": {"w": 12, "h": 7},
+    "runButton": True,
+    "params": [
+        {
+            "paramName": "filter_text",
+            "value": "A",
+            "label": "Filter Text",
+            "description": "Filter items by name",
+            "type": "text"
+        }
+    ]
+})
+@app.get("/vendor1/table_widget_with_str_param")
+def table_widget_with_str_param(filter_text: str):
+    """Returns a table widget with filtered data"""
+    data = [
+        {"name": "Apple", "category": "Fruit", "price": 1.20},
+        {"name": "Banana", "category": "Fruit", "price": 0.50},
+        {"name": "Avocado", "category": "Fruit", "price": 2.00},
+        {"name": "Almond", "category": "Nut", "price": 5.00},
+        {"name": "Bread", "category": "Bakery", "price": 3.50},
+        {"name": "Cheese", "category": "Dairy", "price": 4.00},
+    ]
+    filtered = [item for item in data if filter_text.lower() in item["name"].lower()]
+    return filtered
+
+
 # Markdown Widget with Stale Time
 # The stale time is the time after which the data will be considered stale
 # and you will see a refresh button in the widget becoming orange to indicate that the data is stale

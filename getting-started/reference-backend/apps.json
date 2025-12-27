@@ -186,6 +186,22 @@
             "w": 20,
             "h": 5,
             "groups": []
+          },
+          {
+            "i": "/vendor1/markdown_widget_with_str_and_int",
+            "x": 0,
+            "y": 17,
+            "w": 20,
+            "h": 7,
+            "groups": []
+          },
+          {
+            "i": "/vendor1/table_widget_with_str_param",
+            "x": 20,
+            "y": 17,
+            "w": 20,
+            "h": 7,
+            "groups": []
           }
         ]
       },
