@@ -346,7 +346,12 @@ def markdown_widget_with_str_and_int(text_input: str, number_input: int):
             "value": "A",
             "label": "Filter Text",
             "description": "Filter items by name",
-            "type": "text"
+            "type": "text",
+            "options": [
+                {"label": "A", "value": "A"},
+                {"label": "B", "value": "B"},
+                {"label": "C", "value": "C"}
+            ]
         }
     ]
 })
