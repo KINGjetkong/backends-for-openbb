@@ -489,10 +489,26 @@ def markdown_widget_with_local_image():
     "type": "html",
     "endpoint": "html_widget",
     "gridData": {"w": 40, "h": 20},
+    "raw": True,
 })
 @app.get("/html_widget", response_class=HTMLResponse)
-def html_widget():
+def html_widget(raw: bool = False):
     """Returns an HTML widget with mockup data"""
+    # Raw data for AI agent - flat list for table display
+    dashboard_data = [
+        {"metric": "Total Portfolio Value", "value": "$124,563", "change": "+5.4%", "period": "today"},
+        {"metric": "Active Positions", "value": "42", "change": "+3", "period": "this week"},
+        {"metric": "Daily P&L", "value": "$8,421", "change": "+12.3%", "period": "today"},
+        {"metric": "Sharpe Ratio", "value": "0.87", "change": "-0.05", "period": "current"},
+        {"metric": "Tech Stocks Allocation", "value": "68%", "change": "", "period": "current"},
+        {"metric": "Fixed Income Allocation", "value": "32%", "change": "", "period": "current"},
+        {"metric": "Recent Trade: AAPL", "value": "Bought 100 @ $182.50", "change": "", "period": "2 hours ago"},
+        {"metric": "Recent Trade: GOOGL", "value": "Sold 50 @ $141.20", "change": "", "period": "5 hours ago"},
+        {"metric": "Recent Trade: MSFT", "value": "Bought 75 @ $378.80", "change": "", "period": "Yesterday"},
+    ]
+
+    if raw:
+        return JSONResponse(content=dashboard_data)
     return HTMLResponse(content="""
 <!DOCTYPE html>
 <html>
@@ -578,26 +594,12 @@ def html_widget():
         @keyframes fillAnimation {
             from { width: 0%; }
         }
-        .button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 16px;
-            transition: opacity 0.2s;
-        }
-        .button:hover {
-            opacity: 0.9;
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>Portfolio Dashboard</h1>
-            <p>Real-time market overview and analytics</p>
         </div>
         
         <div class="stats-grid">
@@ -660,10 +662,6 @@ def html_widget():
                     <span style="float: right; color: #666;">Yesterday</span>
                 </li>
             </ul>
-        </div>
-        
-        <div style="text-align: center; margin-top: 30px;">
-            <button class="button" onclick="alert('Refreshing data...')">Refresh Dashboard</button>
         </div>
     </div>
     
