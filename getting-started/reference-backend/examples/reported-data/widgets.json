@@ -1,0 +1,135 @@
+{
+  "data_all": {
+    "name": "Reported Data",
+    "description": "All reported data",
+    "type": "table",
+    "endpoint": "widgets\/data_all",
+    "gridData": {
+      "w": 1920,
+      "h": 150
+    },
+    "data": {
+      "table": {
+        "columns": [
+          {
+            "field": "company_name",
+            "headerName": "Company name",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 120,
+            "pinned": "left"
+          },
+          {
+            "field": "company_commercial_name",
+            "headerName": "Company commercial name",
+            "headerTooltip": "Commercial name of the company",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "indicator_name",
+            "headerName": "Indicator Name",
+            "headerTooltip": "Name of the indicator",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "indicator_type",
+            "headerName": "Indicator Type",
+            "headerTooltip": "Type of the indicator",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "reporting_period_name",
+            "headerName": "Reporting Period Name",
+            "headerTooltip": "Name of the reporting period",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "reporting_period_custom_name",
+            "headerName": "Reporting Period Custom Name",
+            "headerTooltip": "Custom name of the reporting period",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "original_value",
+            "headerName": "Reported Value",
+            "headerTooltip": "Value reported for the reporting period",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "formatted_value",
+            "headerName": "Formatted Value",
+            "headerTooltip": "Value reported for the reporting period",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "reported_at",
+            "headerName": "Reported At",
+            "headerTooltip": "Date and time when the report was submitted",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "report_type",
+            "headerName": "Report Type",
+            "headerTooltip": "Type of the report",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "origin_of_report",
+            "headerName": "Origin of Report",
+            "headerTooltip": "Source of the report",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          },
+          {
+            "field": "reported_by",
+            "headerName": "Reported By",
+            "headerTooltip": "Person or entity who submitted the report",
+            "cellDataType": "text",
+            "formatterFn": "none",
+            "renderFn": "titleCase",
+            "width": 150
+          }
+        ]
+      }
+    },
+    "params": [
+      {
+        "paramName": "reporting_period_id",
+        "description": "Reporting period",
+        "label": "Reporting period",
+        "type": "endpoint",
+        "optionsEndpoint": "\/params\/years"
+      }
+    ]
+  }
+}
