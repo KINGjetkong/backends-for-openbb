@@ -198,6 +198,11 @@
           "y": 2,
           "w": 20,
           "h": 5,
+          "state": {
+            "params": {
+              "condition": "true"
+            }
+          },
           "groups": []
         },
         {
@@ -214,6 +219,13 @@
           "y": 7,
           "w": 20,
           "h": 5,
+          "state": {
+            "params": {
+              "days_picker": [
+                "1"
+              ]
+            }
+          },
           "groups": []
         },
         {
@@ -222,6 +234,13 @@
           "y": 12,
           "w": 20,
           "h": 6,
+          "state": {
+            "params": {
+              "stock_picker": [
+                "AAPL"
+              ]
+            }
+          },
           "groups": []
         },
         {
@@ -263,9 +282,6 @@
           "w": 20,
           "h": 8,
           "state": {
-            "params": {
-              "symbol": "AMZN"
-            },
             "chartView": {
               "enabled": false,
               "chartType": "line"
@@ -355,7 +371,33 @@
           "h": 13,
           "state": {
             "params": {
-              "enable_feature": "true"
+              "enable_feature": "true",
+              "lookback_period": "32"
+            }
+          },
+          "groups": []
+        },
+        {
+          "i": "/vendor1/markdown_widget_with_str_and_int",
+          "x": 0,
+          "y": 52,
+          "w": 20,
+          "h": 8,
+          "groups": []
+        },
+        {
+          "i": "/vendor1/table_widget_with_str_param",
+          "x": 20,
+          "y": 52,
+          "w": 20,
+          "h": 8,
+          "state": {
+            "params": {
+              "filter_text": "C"
+            },
+            "chartView": {
+              "enabled": false,
+              "chartType": "line"
             }
           },
           "groups": []
@@ -563,15 +605,6 @@
             "chartView": {
               "enabled": false,
               "chartType": "line"
-            },
-            "columnState": {
-              "default": {
-                "focusedCell": {
-                  "colId": "client_first_name",
-                  "rowIndex": 1,
-                  "rowPinned": null
-                }
-              }
             }
           },
           "groups": []
@@ -604,7 +637,7 @@
           "h": 22,
           "state": {
             "params": {
-              "prompt": "Hello World",
+              "prompt": "Hello World asd",
               "type": "markdown"
             }
           },
@@ -815,7 +848,7 @@
       "name": "Group 3",
       "type": "endpointParam",
       "paramName": "symbol",
-      "defaultValue": "AMZN"
+      "defaultValue": null
     }
   ]
 }
