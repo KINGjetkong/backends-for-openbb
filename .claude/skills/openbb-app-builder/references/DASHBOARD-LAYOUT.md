@@ -148,33 +148,12 @@ Convert ASCII to coordinates:
 
 ## apps.json Structure
 
-```json
-{
-  "app_id": {
-    "name": "App Name",
-    "description": "App description",
-    "img": "",
-    "img_dark": "",
-    "tabs": {
-      "tab_id": {
-        "name": "Tab Name",
-        "widgets": {
-          "widget_instance_id": {
-            "id": "widget_definition_id",
-            "gridData": {"x": 0, "y": 0, "w": 20, "h": 12}
-          }
-        }
-      }
-    },
-    "groups": {
-      "Group 1": {
-        "paramName": "symbol",
-        "widgetIds": ["widget1", "widget2"]
-      }
-    }
-  }
-}
-```
+For complete apps.json structure, required fields, and JSON examples, see [OPENBB-APP.md](OPENBB-APP.md#appsjson-structure).
+
+**Quick reference for layout items:**
+- Use `i` for widget ID (not `id`)
+- Use `x`, `y`, `w`, `h` directly (not nested in `gridData`)
+- Add `"groups": ["Group 1"]` to sync widgets
 
 ---
 

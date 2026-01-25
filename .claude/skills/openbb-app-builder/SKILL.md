@@ -29,13 +29,14 @@ You are an expert OpenBB app developer. This skill handles the complete pipeline
 ## Pipeline Overview
 
 ```
-Phase 1: Interview    → Gather requirements, analyze references
-Phase 2: Widgets      → Define widget metadata
-Phase 3: Layout       → Design dashboard layout
-Phase 4: Plan         → Generate implementation plan
-Phase 5: Build        → Create all files
-Phase 6: Validate     → Run validation scripts
-Phase 7: Test         → Browser testing (optional)
+Phase 1: Interview      → Gather requirements, analyze references
+Phase 2: Widgets        → Define widget metadata
+Phase 3: Layout         → Design dashboard layout
+Phase 4: Plan           → Generate implementation plan
+Phase 5: Build          → Create all files
+Phase 6: Validate       → Run validation scripts
+Phase 6.5: Browser Val  → Test against OpenBB Workspace (recommended)
+Phase 7: Test           → Browser testing (optional)
 ```
 
 For full architecture details, error recovery patterns, and troubleshooting, see [ARCHITECTURE.md](references/ARCHITECTURE.md).
@@ -123,6 +124,16 @@ If errors, fix and re-validate (max 3 retries).
 
 ---
 
+### Phase 6.5: Browser Validation (Highly Recommended)
+
+**Goal**: Validate against OpenBB Workspace's actual schema.
+
+Static validation cannot catch all issues. Browser validation against `pro.openbb.co` is the most reliable method.
+
+See [VALIDATE.md](references/VALIDATE.md#browser-validation-highly-recommended) for steps and common errors.
+
+---
+
 ### Phase 7: Browser Testing (Optional)
 
 **Goal**: Test in real browser with OpenBB Workspace.
@@ -179,8 +190,13 @@ def get_widgets():
 1. **No `runButton: true`** unless heavy computation (>5 seconds)
 2. **Reasonable heights**: metrics h=4-6, tables h=12-18, charts h=12-15
 3. **widgets.json must be dict** format with widget IDs as keys
-4. **Plotly charts**: No title (widget provides it), support `raw` param
-5. **Group names**: Must be "Group 1", "Group 2" etc.
+4. **apps.json must be array** format: `[{...}]`
+5. **Plotly charts**: No title (widget provides it), support `raw` param
+6. **Group names**: Must be "Group 1", "Group 2" etc.
+
+For complete apps.json structure and required fields, see [OPENBB-APP.md](references/OPENBB-APP.md#appsjson-structure).
+
+For pre-deployment checklist and browser validation, see [VALIDATE.md](references/VALIDATE.md#pre-deployment-checklist).
 
 ---
 

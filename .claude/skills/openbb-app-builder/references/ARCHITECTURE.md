@@ -148,64 +148,16 @@ The goal is to transform app creation from a confusing multi-step journey into a
 
 ## Validation Scripts
 
-### validate_widgets.py
+The pipeline includes validation scripts for each file type:
 
-Validates `widgets.json` against the OpenBB schema.
+| Script | Purpose |
+|--------|---------|
+| `validate_widgets.py` | Schema validation for widgets.json |
+| `validate_apps.py` | Schema validation for apps.json |
+| `validate_app.py` | Runs both validators |
+| `validate_endpoints.py` | Tests live endpoint responses |
 
-```bash
-python scripts/validate_widgets.py apps/my-app/
-```
-
-**Checks:**
-- Required fields (name, type, endpoint)
-- Valid widget types (table, chart, metric, etc.)
-- Parameter configurations
-- Column definitions for tables
-- Grid data ranges (10-40 width, 4-100 height)
-- Render and formatter function names
-
-### validate_apps.py
-
-Validates `apps.json` against the OpenBB schema.
-
-```bash
-python scripts/validate_apps.py apps/my-app/
-```
-
-**Checks:**
-- Tab structure and naming
-- Layout positions (x, y, w, h)
-- Widget references exist in widgets.json
-- No overlapping widgets
-- Group configurations
-
-### validate_app.py
-
-Runs both validators in sequence.
-
-```bash
-python scripts/validate_app.py apps/my-app/
-```
-
-### validate_endpoints.py
-
-Tests live endpoint responses (requires running server).
-
-```bash
-# Start server first
-uvicorn apps/my-app/main:app --port 7779 &
-
-# Run endpoint validation
-python scripts/validate_endpoints.py apps/my-app/ --base-url http://localhost:7779
-```
-
-**Checks:**
-- Server is running
-- /widgets.json returns valid array
-- /apps.json returns valid config
-- Each widget endpoint responds
-- Response format matches widget type
-- Response times
+For detailed commands, error handling, and auto-fix patterns, see [VALIDATE.md](VALIDATE.md).
 
 ---
 
@@ -392,6 +344,20 @@ Claude: [Minimal questions]
 6. **Recovery**: Self-correcting on failures
 7. **Testing**: Browser automation verifies real behavior
 8. **Documentation**: APP-SPEC.md and PLAN.md serve as docs
+
+---
+
+## Documentation vs Reality
+
+**Important**: OpenBB Workspace's actual schema validation may differ from this documentation. When in doubt:
+
+1. **Browser validation is authoritative** - Test against `pro.openbb.co`
+2. **Fetch latest docs** - `https://docs.openbb.co/workspace/llms-full.txt`
+3. **Trust error messages** - OpenBB's validator provides specific error messages
+
+For complete apps.json structure, see [OPENBB-APP.md](OPENBB-APP.md#appsjson-structure).
+
+For browser validation steps and common errors, see [VALIDATE.md](VALIDATE.md#browser-validation-highly-recommended).
 
 ---
 
