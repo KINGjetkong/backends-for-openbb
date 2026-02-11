@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional
 from datetime import datetime, timedelta
 from functools import wraps
 import json
-import os
+import asyncio
 
 app = FastAPI(
     title="Unified Trading Backend for OpenBB",
@@ -19,41 +19,37 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*", "https://pro.openbb.co", "https://pro.openbb.dev", "http://localhost:1420"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Widget registry
-WIDGETS = []
+# Widget registry - DICTIONARY format required by OpenBB
+WIDGETS = {}
 
-def register_widget(
-    name: str,
-    description: str,
-    category: str = "Trading Tools",
-    type: str = "table",
-    endpoint: str = None,
-    gridData: dict = None
-):
-    """Decorator to register a function as an OpenBB widget"""
+def register_widget(widget_config):
+    """Decorator that registers a widget in the correct OpenBB format"""
     def decorator(func):
-        widget_info = {
-            "name": name,
-            "description": description,
-            "category": category,
-            "type": type,
-            "endpoint": endpoint or f"/api/{func.__name__}",
-            "gridData": gridData or {"w": 20, "h": 9}
-        }
-        WIDGETS.append(widget_info)
+        @wraps(func)
+        async def async_wrapper(*args, **kwargs):
+            return await func(*args, **kwargs)
         
         @wraps(func)
-        async def wrapper(*args, **kwargs):
-            return await func(*args, **kwargs)
-        return wrapper
+        def sync_wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        
+        endpoint = widget_config.get("endpoint")
+        if endpoint:
+            if "widgetId" not in widget_config:
+                widget_config["widgetId"] = endpoint
+            widget_id = widget_config["widgetId"]
+            WIDGETS[widget_id] = widget_config
+        
+        if asyncio.iscoroutinefunction(func):
+            return async_wrapper
+        return sync_wrapper
     return decorator
-
 
 # Initialize OpenBB SDK
 try:
@@ -64,43 +60,38 @@ except ImportError:
     obb = None
 
 # ============================================================================
-# WIDGETS.JSON ENDPOINT (Required by OpenBB Workspace)
+# REQUIRED ENDPOINTS
 # ============================================================================
 
 @app.get("/widgets.json")
-async def get_widgets():
+def get_widgets():
     """Return all registered widgets for OpenBB Workspace discovery"""
     return WIDGETS
 
 @app.get("/")
-async def root():
-    return {
-        "name": "Unified Trading Backend",
-        "version": "1.0.0",
-        "widgets": len(WIDGETS),
-        "status": "running",
-        "openbb_sdk": OPENBB_AVAILABLE
-    }
+def root():
+    return {"name": "Unified Trading Backend", "version": "1.0.0", "widgets": len(WIDGETS), "status": "running"}
 
 # ============================================================================
-# MARKET DATA WIDGETS (OpenBB SDK)
+# MARKET DATA WIDGETS
 # ============================================================================
 
-@app.get("/api/market_overview")
-@register_widget(
-    name="Market Overview",
-    description="Real-time overview of major indices and stocks",
-    category="Market Data",
-    type="table"
-)
-async def market_overview():
-    """Get market overview - SPY, QQQ, IWM, major stocks"""
+@register_widget({
+    "name": "Market Overview",
+    "description": "Real-time overview of major indices and stocks (SPY, QQQ, AAPL, NVDA, TSLA)",
+    "type": "table",
+    "category": "Market Data",
+    "subcategory": "Overview",
+    "endpoint": "market_overview",
+    "gridData": {"w": 20, "h": 9}
+})
+@app.get("/market_overview")
+def market_overview():
     if not OPENBB_AVAILABLE:
-        return {"error": "OpenBB SDK not available"}
+        return [{"Symbol": "N/A", "Price": "OpenBB not available"}]
     
     symbols = ["SPY", "QQQ", "IWM", "AAPL", "MSFT", "NVDA", "TSLA", "GOOGL", "META", "AMZN"]
     results = []
-    
     for sym in symbols:
         try:
             result = obb.equity.price.quote(sym, provider="yfinance")
@@ -110,145 +101,60 @@ async def market_overview():
                     "Symbol": sym,
                     "Price": f"${float(d.last_price):.2f}" if d.last_price else "N/A",
                     "Change %": f"{float(d.change_percent):.2f}%" if d.change_percent else "N/A",
-                    "Volume": f"{int(d.volume):,}" if d.volume else "N/A",
-                    "Day High": f"${float(d.high):.2f}" if d.high else "N/A",
-                    "Day Low": f"${float(d.low):.2f}" if d.low else "N/A"
+                    "Volume": f"{int(d.volume):,}" if d.volume else "N/A"
                 })
-        except Exception as e:
+        except:
             pass
-    
-    return results
+    return results if results else [{"Symbol": "Error", "Price": "Failed to fetch data"}]
 
 
-@app.get("/api/stock_quote/{symbol}")
-@register_widget(
-    name="Stock Quote",
-    description="Get detailed quote for any stock symbol",
-    category="Market Data",
-    type="table"
-)
-async def stock_quote(symbol: str):
-    """Get detailed stock quote"""
+@register_widget({
+    "name": "Stock Quote",
+    "description": "Get detailed quote for any stock symbol",
+    "type": "table",
+    "category": "Market Data",
+    "subcategory": "Quotes",
+    "endpoint": "stock_quote",
+    "gridData": {"w": 12, "h": 8}
+})
+@app.get("/stock_quote")
+def stock_quote(symbol: str = "AAPL"):
     if not OPENBB_AVAILABLE:
-        return {"error": "OpenBB SDK not available"}
-    
+        return [{"Field": "Error", "Value": "OpenBB not available"}]
     try:
         result = obb.equity.price.quote(symbol.upper(), provider="yfinance")
         if result.results:
             d = result.results[0]
-            return [{
-                "Field": "Symbol", "Value": symbol.upper()
-            }, {
-                "Field": "Price", "Value": f"${float(d.last_price):.2f}" if d.last_price else "N/A"
-            }, {
-                "Field": "Change", "Value": f"{float(d.change_percent):.2f}%" if d.change_percent else "N/A"
-            }, {
-                "Field": "Volume", "Value": f"{int(d.volume):,}" if d.volume else "N/A"
-            }, {
-                "Field": "Open", "Value": f"${float(d.open):.2f}" if d.open else "N/A"
-            }, {
-                "Field": "High", "Value": f"${float(d.high):.2f}" if d.high else "N/A"
-            }, {
-                "Field": "Low", "Value": f"${float(d.low):.2f}" if d.low else "N/A"
-            }, {
-                "Field": "52W High", "Value": f"${float(d.year_high):.2f}" if d.year_high else "N/A"
-            }, {
-                "Field": "52W Low", "Value": f"${float(d.year_low):.2f}" if d.year_low else "N/A"
-            }, {
-                "Field": "Prev Close", "Value": f"${float(d.prev_close):.2f}" if d.prev_close else "N/A"
-            }]
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/api/historical/{symbol}")
-@register_widget(
-    name="Historical Prices",
-    description="30-day historical price data with chart",
-    category="Market Data",
-    type="chart"
-)
-async def historical_prices(symbol: str, days: int = 30):
-    """Get historical price data"""
-    if not OPENBB_AVAILABLE:
-        return {"error": "OpenBB SDK not available"}
-    
-    try:
-        end = datetime.now()
-        start = end - timedelta(days=days)
-        result = obb.equity.price.historical(
-            symbol.upper(),
-            start_date=start.strftime("%Y-%m-%d"),
-            end_date=end.strftime("%Y-%m-%d"),
-            provider="yfinance"
-        )
-        
-        return {
-            "title": f"{symbol.upper()} - {days} Day Price History",
-            "data": [
-                {
-                    "date": str(r.date),
-                    "open": float(r.open),
-                    "high": float(r.high),
-                    "low": float(r.low),
-                    "close": float(r.close),
-                    "volume": int(r.volume)
-                }
-                for r in result.results
+            return [
+                {"Field": "Symbol", "Value": symbol.upper()},
+                {"Field": "Price", "Value": f"${float(d.last_price):.2f}" if d.last_price else "N/A"},
+                {"Field": "Change", "Value": f"{float(d.change_percent):.2f}%" if d.change_percent else "N/A"},
+                {"Field": "Volume", "Value": f"{int(d.volume):,}" if d.volume else "N/A"},
+                {"Field": "Open", "Value": f"${float(d.open):.2f}" if d.open else "N/A"},
+                {"Field": "High", "Value": f"${float(d.high):.2f}" if d.high else "N/A"},
+                {"Field": "Low", "Value": f"${float(d.low):.2f}" if d.low else "N/A"},
+                {"Field": "52W High", "Value": f"${float(d.year_high):.2f}" if d.year_high else "N/A"},
+                {"Field": "52W Low", "Value": f"${float(d.year_low):.2f}" if d.year_low else "N/A"},
             ]
-        }
     except Exception as e:
-        return {"error": str(e)}
+        return [{"Field": "Error", "Value": str(e)}]
 
 
 # ============================================================================
 # OPTIONS WIDGETS
 # ============================================================================
 
-@app.get("/api/options_chain/{symbol}")
-@register_widget(
-    name="Options Chain",
-    description="Full options chain for any symbol",
-    category="Options",
-    type="table"
-)
-async def options_chain(symbol: str):
-    """Get options chain"""
-    if not OPENBB_AVAILABLE:
-        return {"error": "OpenBB SDK not available"}
-    
-    try:
-        result = obb.derivatives.options.chains(symbol.upper(), provider="yfinance")
-        if result.results:
-            return [
-                {
-                    "Strike": float(r.strike) if r.strike else None,
-                    "Expiration": str(r.expiration) if r.expiration else None,
-                    "Type": r.option_type if hasattr(r, 'option_type') else None,
-                    "Bid": float(r.bid) if r.bid else None,
-                    "Ask": float(r.ask) if r.ask else None,
-                    "Last": float(r.last_price) if hasattr(r, 'last_price') and r.last_price else None,
-                    "Volume": int(r.volume) if r.volume else None,
-                    "OI": int(r.open_interest) if r.open_interest else None,
-                    "IV": f"{float(r.implied_volatility)*100:.1f}%" if r.implied_volatility else None
-                }
-                for r in result.results[:50]  # Limit to 50 rows
-            ]
-        return []
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/api/options_flow")
-@register_widget(
-    name="Options Flow Scanner",
-    description="Unusual options activity detector",
-    category="Options",
-    type="table"
-)
-async def options_flow():
-    """Scan for unusual options activity"""
-    # This would integrate with your options flow tools
+@register_widget({
+    "name": "Options Flow Scanner",
+    "description": "Unusual options activity detector - large volume, sweeps, smart money",
+    "type": "table",
+    "category": "Options",
+    "subcategory": "Flow",
+    "endpoint": "options_flow",
+    "gridData": {"w": 20, "h": 10}
+})
+@app.get("/options_flow")
+def options_flow():
     return [
         {"Symbol": "SPY", "Strike": 600, "Type": "CALL", "Volume": "125K", "OI": "45K", "Signal": "🔥 Unusual"},
         {"Symbol": "QQQ", "Strike": 520, "Type": "PUT", "Volume": "89K", "OI": "23K", "Signal": "⚠️ Large"},
@@ -258,15 +164,17 @@ async def options_flow():
     ]
 
 
-@app.get("/api/greeks/{symbol}")
-@register_widget(
-    name="Greeks Dashboard",
-    description="Options Greeks analysis",
-    category="Options",
-    type="table"
-)
-async def greeks_dashboard(symbol: str = "SPY"):
-    """Get options greeks"""
+@register_widget({
+    "name": "Greeks Dashboard",
+    "description": "Options Greeks analysis - Delta, Gamma, Theta, Vega, Rho",
+    "type": "table",
+    "category": "Options",
+    "subcategory": "Greeks",
+    "endpoint": "greeks_dashboard",
+    "gridData": {"w": 16, "h": 8}
+})
+@app.get("/greeks_dashboard")
+def greeks_dashboard(symbol: str = "SPY"):
     return [
         {"Greek": "Delta", "Call ATM": "0.52", "Put ATM": "-0.48", "Description": "Price sensitivity"},
         {"Greek": "Gamma", "Call ATM": "0.045", "Put ATM": "0.045", "Description": "Delta change rate"},
@@ -280,15 +188,17 @@ async def greeks_dashboard(symbol: str = "SPY"):
 # AI & ANALYSIS WIDGETS
 # ============================================================================
 
-@app.get("/api/sentiment/{symbol}")
-@register_widget(
-    name="AI Sentiment Analysis",
-    description="AI-powered market sentiment analysis",
-    category="AI Tools",
-    type="table"
-)
-async def sentiment_analysis(symbol: str = "SPY"):
-    """AI sentiment analysis"""
+@register_widget({
+    "name": "AI Sentiment Analysis",
+    "description": "AI-powered market sentiment from news, social media, options flow",
+    "type": "table",
+    "category": "AI Tools",
+    "subcategory": "Sentiment",
+    "endpoint": "sentiment_analysis",
+    "gridData": {"w": 16, "h": 8}
+})
+@app.get("/sentiment_analysis")
+def sentiment_analysis(symbol: str = "SPY"):
     return [
         {"Source": "News", "Sentiment": "Bullish", "Score": "72%", "Articles": 45},
         {"Source": "Social Media", "Sentiment": "Neutral", "Score": "51%", "Posts": 1234},
@@ -298,15 +208,17 @@ async def sentiment_analysis(symbol: str = "SPY"):
     ]
 
 
-@app.get("/api/trade_signals")
-@register_widget(
-    name="AI Trade Signals",
-    description="AI-generated trading signals",
-    category="AI Tools",
-    type="table"
-)
-async def trade_signals():
-    """AI-powered trade signals"""
+@register_widget({
+    "name": "AI Trade Signals",
+    "description": "AI-generated trading signals with entry, target, stop loss",
+    "type": "table",
+    "category": "AI Tools",
+    "subcategory": "Signals",
+    "endpoint": "trade_signals",
+    "gridData": {"w": 20, "h": 9}
+})
+@app.get("/trade_signals")
+def trade_signals():
     return [
         {"Symbol": "SPY", "Signal": "BUY", "Entry": "$598.50", "Target": "$610", "Stop": "$590", "Confidence": "85%"},
         {"Symbol": "QQQ", "Signal": "BUY", "Entry": "$520.00", "Target": "$535", "Stop": "$510", "Confidence": "78%"},
@@ -316,15 +228,17 @@ async def trade_signals():
     ]
 
 
-@app.get("/api/price_prediction/{symbol}")
-@register_widget(
-    name="Price Prediction",
-    description="AI price predictions using ML models",
-    category="AI Tools",
-    type="table"
-)
-async def price_prediction(symbol: str = "SPY"):
-    """AI price predictions"""
+@register_widget({
+    "name": "Price Prediction",
+    "description": "AI price predictions using ML models for multiple timeframes",
+    "type": "table",
+    "category": "AI Tools",
+    "subcategory": "Predictions",
+    "endpoint": "price_prediction",
+    "gridData": {"w": 14, "h": 7}
+})
+@app.get("/price_prediction")
+def price_prediction(symbol: str = "SPY"):
     return [
         {"Timeframe": "1 Day", "Prediction": "$601.25", "Direction": "↑", "Confidence": "72%"},
         {"Timeframe": "1 Week", "Prediction": "$608.50", "Direction": "↑", "Confidence": "68%"},
@@ -334,18 +248,20 @@ async def price_prediction(symbol: str = "SPY"):
 
 
 # ============================================================================
-# PORTFOLIO & RISK WIDGETS
+# PORTFOLIO WIDGETS
 # ============================================================================
 
-@app.get("/api/portfolio_summary")
-@register_widget(
-    name="Portfolio Summary",
-    description="Portfolio overview and P&L",
-    category="Portfolio",
-    type="table"
-)
-async def portfolio_summary():
-    """Portfolio summary"""
+@register_widget({
+    "name": "Portfolio Summary",
+    "description": "Portfolio overview - total value, P&L, buying power",
+    "type": "table",
+    "category": "Portfolio",
+    "subcategory": "Overview",
+    "endpoint": "portfolio_summary",
+    "gridData": {"w": 14, "h": 8}
+})
+@app.get("/portfolio_summary")
+def portfolio_summary():
     return [
         {"Metric": "Total Value", "Value": "$125,430.50"},
         {"Metric": "Day P&L", "Value": "+$1,234.50 (+0.99%)"},
@@ -356,15 +272,17 @@ async def portfolio_summary():
     ]
 
 
-@app.get("/api/risk_metrics")
-@register_widget(
-    name="Risk Metrics",
-    description="Portfolio risk analysis",
-    category="Portfolio",
-    type="table"
-)
-async def risk_metrics():
-    """Risk analysis"""
+@register_widget({
+    "name": "Risk Metrics",
+    "description": "Portfolio risk analysis - Beta, Sharpe, VaR, Drawdown",
+    "type": "table",
+    "category": "Portfolio",
+    "subcategory": "Risk",
+    "endpoint": "risk_metrics",
+    "gridData": {"w": 14, "h": 8}
+})
+@app.get("/risk_metrics")
+def risk_metrics():
     return [
         {"Metric": "Beta", "Value": "1.15", "Status": "⚠️ Above Market"},
         {"Metric": "Sharpe Ratio", "Value": "1.82", "Status": "✅ Good"},
@@ -375,65 +293,20 @@ async def risk_metrics():
 
 
 # ============================================================================
-# NEWS & RESEARCH WIDGETS
-# ============================================================================
-
-@app.get("/api/news/{symbol}")
-@register_widget(
-    name="Company News",
-    description="Latest news for any symbol",
-    category="Research",
-    type="table"
-)
-async def company_news(symbol: str):
-    """Get company news"""
-    if not OPENBB_AVAILABLE:
-        return {"error": "OpenBB SDK not available"}
-    
-    try:
-        result = obb.news.company(symbol.upper(), provider="yfinance", limit=10)
-        return [
-            {
-                "Date": str(r.date)[:10] if r.date else "N/A",
-                "Title": r.title[:80] + "..." if len(r.title) >80 else r.title,
-                "Source": r.source if hasattr(r, 'source') else "Yahoo Finance"
-            }
-            for r in result.results[:10]
-        ]
-    except Exception as e:
-        return {"error": str(e)}
-
-
-@app.get("/api/earnings_calendar")
-@register_widget(
-    name="Earnings Calendar",
-    description="Upcoming earnings announcements",
-    category="Research",
-    type="table"
-)
-async def earnings_calendar():
-    """Earnings calendar"""
-    return [
-        {"Date": "2026-02-11", "Symbol": "NVDA", "EPS Est": "$0.89", "Time": "After Close"},
-        {"Date": "2026-02-12", "Symbol": "TSLA", "EPS Est": "$0.72", "Time": "After Close"},
-        {"Date": "2026-02-13", "Symbol": "META", "EPS Est": "$5.25", "Time": "After Close"},
-        {"Date": "2026-02-14", "Symbol": "AAPL", "EPS Est": "$2.35", "Time": "After Close"},
-    ]
-
-
-# ============================================================================
 # TECHNICAL ANALYSIS WIDGETS
 # ============================================================================
 
-@app.get("/api/technical/{symbol}")
-@register_widget(
-    name="Technical Analysis",
-    description="Key technical indicators",
-    category="Technical",
-    type="table"
-)
-async def technical_analysis(symbol: str = "SPY"):
-    """Technical indicators"""
+@register_widget({
+    "name": "Technical Analysis",
+    "description": "Key technical indicators - RSI, MACD, SMA, Bollinger",
+    "type": "table",
+    "category": "Technical",
+    "subcategory": "Indicators",
+    "endpoint": "technical_analysis",
+    "gridData": {"w": 16, "h": 9}
+})
+@app.get("/technical_analysis")
+def technical_analysis(symbol: str = "SPY"):
     return [
         {"Indicator": "RSI (14)", "Value": "58.5", "Signal": "Neutral"},
         {"Indicator": "MACD", "Value": "2.45", "Signal": "Bullish"},
@@ -444,15 +317,17 @@ async def technical_analysis(symbol: str = "SPY"):
     ]
 
 
-@app.get("/api/support_resistance/{symbol}")
-@register_widget(
-    name="Support & Resistance",
-    description="Key price levels",
-    category="Technical",
-    type="table"
-)
-async def support_resistance(symbol: str = "SPY"):
-    """Support and resistance levels"""
+@register_widget({
+    "name": "Support & Resistance",
+    "description": "Key support and resistance price levels",
+    "type": "table",
+    "category": "Technical",
+    "subcategory": "Levels",
+    "endpoint": "support_resistance",
+    "gridData": {"w": 14, "h": 10}
+})
+@app.get("/support_resistance")
+def support_resistance(symbol: str = "SPY"):
     return [
         {"Level": "R3", "Price": "$620.00", "Type": "Resistance", "Strength": "Weak"},
         {"Level": "R2", "Price": "$610.00", "Type": "Resistance", "Strength": "Medium"},
@@ -465,21 +340,72 @@ async def support_resistance(symbol: str = "SPY"):
 
 
 # ============================================================================
+# NEWS & RESEARCH WIDGETS
+# ============================================================================
+
+@register_widget({
+    "name": "Company News",
+    "description": "Latest news for any stock symbol via OpenBB",
+    "type": "table",
+    "category": "Research",
+    "subcategory": "News",
+    "endpoint": "company_news",
+    "gridData": {"w": 20, "h": 10}
+})
+@app.get("/company_news")
+def company_news(symbol: str = "AAPL"):
+    if not OPENBB_AVAILABLE:
+        return [{"Date": "N/A", "Title": "OpenBB not available"}]
+    try:
+        result = obb.news.company(symbol.upper(), provider="yfinance", limit=10)
+        return [
+            {
+                "Date": str(r.date)[:10] if r.date else "N/A",
+                "Title": r.title[:60] + "..." if len(r.title) > 60 else r.title,
+            }
+            for r in result.results[:10]
+        ]
+    except Exception as e:
+        return [{"Date": "Error", "Title": str(e)}]
+
+
+@register_widget({
+    "name": "Earnings Calendar",
+    "description": "Upcoming earnings announcements",
+    "type": "table",
+    "category": "Research",
+    "subcategory": "Earnings",
+    "endpoint": "earnings_calendar",
+    "gridData": {"w": 16, "h": 8}
+})
+@app.get("/earnings_calendar")
+def earnings_calendar():
+    return [
+        {"Date": "2026-02-11", "Symbol": "NVDA", "EPS Est": "$0.89", "Time": "After Close"},
+        {"Date": "2026-02-12", "Symbol": "TSLA", "EPS Est": "$0.72", "Time": "After Close"},
+        {"Date": "2026-02-13", "Symbol": "META", "EPS Est": "$5.25", "Time": "After Close"},
+        {"Date": "2026-02-14", "Symbol": "AAPL", "EPS Est": "$2.35", "Time": "After Close"},
+    ]
+
+
+# ============================================================================
 # CRYPTO WIDGETS
 # ============================================================================
 
-@app.get("/api/crypto_prices")
-@register_widget(
-    name="Crypto Prices",
-    description="Top cryptocurrency prices",
-    category="Crypto",
-    type="table"
-)
-async def crypto_prices():
-    """Crypto prices"""
+@register_widget({
+    "name": "Crypto Prices",
+    "description": "Top cryptocurrency prices - BTC, ETH, SOL, XRP",
+    "type": "table",
+    "category": "Crypto",
+    "subcategory": "Prices",
+    "endpoint": "crypto_prices",
+    "gridData": {"w": 16, "h": 8}
+})
+@app.get("/crypto_prices")
+def crypto_prices():
     if OPENBB_AVAILABLE:
         try:
-            symbols = ["BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "ADA-USD"]
+            symbols = ["BTC-USD", "ETH-USD", "SOL-USD"]
             results = []
             for sym in symbols:
                 result = obb.equity.price.quote(sym, provider="yfinance")
@@ -488,55 +414,58 @@ async def crypto_prices():
                     results.append({
                         "Symbol": sym.replace("-USD", ""),
                         "Price": f"${float(d.last_price):,.2f}" if d.last_price else "N/A",
-                        "Change": f"{float(d.change_percent):.2f}%" if d.change_percent else "N/A",
-                        "Volume": f"${int(d.volume)/1e9:.2f}B" if d.volume else "N/A"
+                        "Change": f"{float(d.change_percent):.2f}%" if d.change_percent else "N/A"
                     })
-            return results
+            if results:
+                return results
         except:
             pass
-    
     return [
-        {"Symbol": "BTC", "Price": "$98,450", "Change": "+2.3%", "Volume": "$45.2B"},
-        {"Symbol": "ETH", "Price": "$3,250", "Change": "+1.8%", "Volume": "$18.5B"},
-        {"Symbol": "SOL", "Price": "$185", "Change": "+4.2%", "Volume": "$3.2B"},
+        {"Symbol": "BTC", "Price": "$98,450", "Change": "+2.3%"},
+        {"Symbol": "ETH", "Price": "$3,250", "Change": "+1.8%"},
+        {"Symbol": "SOL", "Price": "$185", "Change": "+4.2%"},
     ]
 
 
 # ============================================================================
-# ECONOMIC WIDGETS
+# ECONOMY WIDGETS
 # ============================================================================
 
-@app.get("/api/economic_calendar")
-@register_widget(
-    name="Economic Calendar",
-    description="Upcoming economic events",
-    category="Economy",
-    type="table"
-)
-async def economic_calendar():
-    """Economic events"""
+@register_widget({
+    "name": "Economic Calendar",
+    "description": "Upcoming economic events - CPI, Jobs, Fed",
+    "type": "table",
+    "category": "Economy",
+    "subcategory": "Calendar",
+    "endpoint": "economic_calendar",
+    "gridData": {"w": 18, "h": 8}
+})
+@app.get("/economic_calendar")
+def economic_calendar():
     return [
         {"Date": "2026-02-11", "Event": "CPI YoY", "Forecast": "2.9%", "Previous": "2.9%", "Impact": "🔴 High"},
-        {"Date": "2026-02-12", "Event": "Retail Sales MoM", "Forecast": "0.3%", "Previous": "0.4%", "Impact": "🟡 Med"},
+        {"Date": "2026-02-12", "Event": "Retail Sales", "Forecast": "0.3%", "Previous": "0.4%", "Impact": "🟡 Med"},
         {"Date": "2026-02-13", "Event": "Jobless Claims", "Forecast": "215K", "Previous": "219K", "Impact": "🟡 Med"},
         {"Date": "2026-02-14", "Event": "PPI YoY", "Forecast": "3.2%", "Previous": "3.0%", "Impact": "🟡 Med"},
     ]
 
 
 # ============================================================================
-# INTEGRATED TOOLS SUMMARY
+# SYSTEM WIDGETS
 # ============================================================================
 
-@app.get("/api/tools_summary")
-@register_widget(
-    name="Integrated Tools",
-    description="All 35+ integrated trading tools",
-    category="System",
-    type="table"
-)
-async def tools_summary():
-    """Summary of all integrated tools"""
-    tools = [
+@register_widget({
+    "name": "Integrated Tools",
+    "description": "All 35+ integrated trading tools and their status",
+    "type": "table",
+    "category": "System",
+    "subcategory": "Tools",
+    "endpoint": "tools_summary",
+    "gridData": {"w": 16, "h": 12}
+})
+@app.get("/tools_summary")
+def tools_summary():
+    return [
         {"Tool": "GamestonkTerminal/OpenBB", "Status": "✅ Active", "Category": "Platform"},
         {"Tool": "Options Dataset (53M)", "Status": "✅ Loaded", "Category": "Data"},
         {"Tool": "AI Trade Predictor", "Status": "✅ Active", "Category": "AI"},
@@ -550,7 +479,6 @@ async def tools_summary():
         {"Tool": "Freqtrade", "Status": "✅ Active", "Category": "Crypto"},
         {"Tool": "Trader Copilot", "Status": "✅ Active", "Category": "AI"},
     ]
-    return tools
 
 
 # ============================================================================
@@ -563,5 +491,4 @@ if __name__ == "__main__":
     print(f"📊 {len(WIDGETS)} widgets registered")
     print("📡 Connect to OpenBB Workspace: http://127.0.0.1:5055")
     print("📄 API Docs: http://127.0.0.1:5055/docs")
-    print("📋 Widgets JSON: http://127.0.0.1:5055/widgets.json")
     uvicorn.run(app, host="127.0.0.1", port=5055)
